@@ -7,6 +7,16 @@ import { stripe, STRIPE_PRO_PRICE_ID } from "@/lib/stripe";
  * Cria uma sessão Stripe Checkout para assinar o plano Pro.
  */
 export async function POST(request: NextRequest) {
+  // Validação de configuração — falha rápida com mensagem clara
+  if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.includes("PLACEHOLDER")) {
+    console.error("[Checkout] STRIPE_SECRET_KEY não configurada");
+    return NextResponse.json({ error: "Pagamentos temporariamente indisponíveis. Tente novamente em breve." }, { status: 503 });
+  }
+  if (!process.env.STRIPE_PRO_PRICE_ID || process.env.STRIPE_PRO_PRICE_ID.includes("PLACEHOLDER")) {
+    console.error("[Checkout] STRIPE_PRO_PRICE_ID não configurado");
+    return NextResponse.json({ error: "Pagamentos temporariamente indisponíveis. Tente novamente em breve." }, { status: 503 });
+  }
+
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -67,9 +77,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error("Erro ao criar checkout:", error);
+    // Log detalhado para facilitar diagnóstico
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("[Checkout] Erro ao criar checkout:", msg);
     return NextResponse.json(
-      { error: "Erro interno ao criar checkout" },
+      { error: "Erro ao iniciar pagamento. Verifique sua conexão e tente novamente." },
       { status: 500 }
     );
   }
