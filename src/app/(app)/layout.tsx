@@ -19,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Navbar profile={profile} notasMes={notasMes ?? 0} />
-      <main className="flex-1 p-4 pb-8 lg:p-8 overflow-x-hidden min-w-0">
+      <main className="flex-1 p-3 pb-8 sm:p-4 lg:p-8 overflow-x-hidden min-w-0 max-w-full">
         {children}
       </main>
       {showOnboarding && (

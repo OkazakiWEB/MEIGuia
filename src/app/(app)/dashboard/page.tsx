@@ -64,16 +64,16 @@ export default async function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* ── Cabeçalho ── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">Dashboard</h1>
           <p className="text-gray-500 text-sm mt-1">
             Ano fiscal {anoAtual} • {new Date().toLocaleDateString("pt-BR", { month: "long" })}
           </p>
         </div>
-        <Link href="/notas/nova" className="btn-primary flex items-center gap-2 text-sm">
+        <Link href="/notas/nova" className="btn-primary flex items-center gap-2 text-sm flex-shrink-0">
           <Plus className="w-4 h-4" />
-          Nova nota
+          <span className="hidden sm:inline">Nova nota</span>
         </Link>
       </div>
 
@@ -182,10 +182,10 @@ function MetricCard({ label, value, sublabel, icon }: {
   return (
     <div className="card">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-xs text-gray-500 font-medium">{label}</p>
-        {icon}
+        <p className="text-xs text-gray-500 font-medium leading-tight">{label}</p>
+        <div className="flex-shrink-0 ml-1">{icon}</div>
       </div>
-      <p className="text-xl font-bold text-gray-900">{value}</p>
+      <p className="text-base sm:text-xl font-bold text-gray-900 truncate">{value}</p>
       {sublabel && <p className="text-xs text-amber-600 mt-1">{sublabel}</p>}
     </div>
   );
