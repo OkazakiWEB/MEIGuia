@@ -58,7 +58,12 @@ export async function POST(request: NextRequest) {
     // Criar sessão de Checkout
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      payment_method_types: ["card"],
+      // automatic_payment_methods exibe todos os métodos habilitados no Stripe Dashboard
+      // para o país do cliente: cartão, PIX, Boleto (quando ativados)
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: "always",
+      },
       line_items: [
         {
           price: STRIPE_PRO_PRICE_ID,
@@ -73,6 +78,8 @@ export async function POST(request: NextRequest) {
       },
       locale: "pt-BR",
       allow_promotion_codes: true,
+      // Pré-preenche o e-mail do usuário no checkout
+      customer_email: profile?.stripe_customer_id ? undefined : user.email!,
     });
 
     return NextResponse.json({ url: session.url });
