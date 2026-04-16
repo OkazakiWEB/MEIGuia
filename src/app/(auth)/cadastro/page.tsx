@@ -26,7 +26,7 @@ function CadastroForm() {
     if (password.length < 8) { toast.error("A senha deve ter pelo menos 8 caracteres."); return; }
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
         data: { full_name: fullName },
@@ -35,8 +35,18 @@ function CadastroForm() {
     });
 
     if (error) { toast.error(error.message); setLoading(false); return; }
-    toast.success("Conta criada! Verifique seu e-mail para confirmar.");
-    router.push(plan === "pro" ? "/assinatura?upgrade=true" : "/dashboard");
+
+    // Se a sessão foi criada imediatamente (confirmação de e-mail desabilitada)
+    if (data.session) {
+      toast.success("Conta criada! Bem-vindo ao Portal MEIguia 🎉");
+      router.push(plan === "pro" ? "/assinatura?upgrade=true" : "/dashboard");
+      router.refresh();
+      return;
+    }
+
+    // Se precisar confirmar e-mail
+    toast.success("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
+    setLoading(false);
   }
 
   async function handleGoogleSignup() {
