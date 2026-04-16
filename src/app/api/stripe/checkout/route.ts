@@ -58,12 +58,9 @@ export async function POST(request: NextRequest) {
     // Criar sessão de Checkout
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      // automatic_payment_methods exibe todos os métodos habilitados no Stripe Dashboard
-      // para o país do cliente: cartão, PIX, Boleto (quando ativados)
-      automatic_payment_methods: {
-        enabled: true,
-        allow_redirects: "always",
-      },
+      // Métodos de pagamento aceitos: cartão, PIX e Boleto (PIX/Boleto precisam estar
+      // habilitados no Stripe Dashboard → Settings → Payment Methods)
+      payment_method_types: ["card", "pix", "boleto"],
       line_items: [
         {
           price: STRIPE_PRO_PRICE_ID,
