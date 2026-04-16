@@ -68,7 +68,7 @@ const steps = [
           <p className="text-sm font-semibold text-brand-700 mb-2">Plano Gratuito — sem cartão</p>
           <ul className="space-y-1.5">
             {[
-              "20 notas fiscais por mês",
+              "10 notas fiscais por mês",
               "Dashboard com alertas de limite",
               "Acesso imediato",
             ].map((f) => (

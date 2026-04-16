@@ -85,11 +85,11 @@ export function NotaForm({ userId, isPro, nota }: NotaFormProps) {
         }
       } else {
         toast.success("Nota criada com sucesso!");
-        // Verificar se está se aproximando do limite (18 ou 19 notas)
+        // Verificar se está se aproximando do limite (8 ou 9 notas)
         if (!isPro) {
           const { data: qtd } = await supabase.rpc("get_notas_mes_atual", { p_user_id: userId });
-          if ((qtd ?? 0) >= 18) {
-            setUpgradeModal({ open: true, notasMes: qtd ?? 18, reason: "warning" });
+          if ((qtd ?? 0) >= 8) {
+            setUpgradeModal({ open: true, notasMes: qtd ?? 8, reason: "warning" });
             return; // não redireciona imediatamente — usuário verá o modal
           }
         }

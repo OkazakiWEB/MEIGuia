@@ -90,7 +90,7 @@ export default async function DashboardPage() {
         <MetricCard
           label="Notas este mês"
           value={String(notasMes.length)}
-          sublabel={!isPro && qtdNotasMes >= 15 ? `⚠️ ${qtdNotasMes}/20 usadas` : undefined}
+          sublabel={!isPro && qtdNotasMes >= 6 ? `⚠️ ${qtdNotasMes}/10 usadas` : undefined}
           icon={<FileText className="w-5 h-5 text-brand-600" />}
         />
         <MetricCard
@@ -111,16 +111,16 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Aviso limite free ── */}
-      {!isPro && qtdNotasMes >= 18 && (
+      {!isPro && qtdNotasMes >= 8 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
           <span className="text-xl">⚠️</span>
           <div>
             <p className="text-sm font-semibold text-amber-800">
-              Você usou {qtdNotasMes}/20 notas gratuitas este mês
+              Você usou {qtdNotasMes}/10 notas gratuitas este mês
             </p>
             <p className="text-sm text-amber-700 mt-1">
               Faça upgrade para o Pro e emita notas ilimitadas.{" "}
-              <Link href="/assinatura" className="underline font-semibold">Assinar Pro →</Link>
+              <Link href="/assinatura" className="underline font-semibold">Proteger meu MEI →</Link>
             </p>
           </div>
         </div>

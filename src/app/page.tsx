@@ -20,7 +20,7 @@ const plans = [
     cta: "Começar grátis",
     href: "/cadastro",
     items: [
-      "Até 20 notas por mês",
+      "Até 10 notas por mês",
       "Dashboard básico",
       "Alertas de limite",
       "Histórico de notas",

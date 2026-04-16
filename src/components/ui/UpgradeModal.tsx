@@ -7,7 +7,7 @@ import { X, Sparkles, CheckCircle, Zap } from "lucide-react";
 interface UpgradeModalProps {
   open: boolean;
   onClose: () => void;
-  /** "warning" = perto do limite (18-19 notas); "limit" = limite atingido (20) */
+  /** "warning" = perto do limite (8-9 notas); "limit" = limite atingido (10) */
   reason: "warning" | "limit";
   notasMes: number;
 }
@@ -60,7 +60,7 @@ export function UpgradeModal({ open, onClose, reason, notasMes }: UpgradeModalPr
               ) : (
                 <>
                   <p className="font-bold text-lg">Quase lá!</p>
-                  <p className="text-sm text-white/80">Você usou {notasMes}/20 notas este mês</p>
+                  <p className="text-sm text-white/80">Você usou {notasMes}/10 notas este mês</p>
                 </>
               )}
             </div>
@@ -70,7 +70,7 @@ export function UpgradeModal({ open, onClose, reason, notasMes }: UpgradeModalPr
           <div className="w-full bg-white/20 rounded-full h-2 mt-3">
             <div
               className="bg-amber-400 h-2 rounded-full transition-all"
-              style={{ width: `${Math.min((notasMes / 20) * 100, 100)}%` }}
+              style={{ width: `${Math.min((notasMes / 10) * 100, 100)}%` }}
             />
           </div>
         </div>

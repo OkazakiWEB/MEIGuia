@@ -92,7 +92,7 @@ export default async function NotasPage({
       {atLimite && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
           <p className="text-sm font-semibold text-amber-800">
-            Limite de 20 notas/mês atingido no plano Gratuito.{" "}
+            Limite de 10 notas/mês atingido no plano Gratuito.{" "}
             <Link href="/assinatura" className="underline">Faça upgrade para o Pro →</Link>
           </p>
         </div>

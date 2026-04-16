@@ -29,9 +29,9 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
   const isFree = profile?.plano !== "pro";
   // Cor do contador baseada na proximidade do limite
   const counterColor =
-    notasMes >= 20 ? "text-red-400 font-bold" :
-    notasMes >= 18 ? "text-amber-400 font-semibold" :
-    notasMes >= 15 ? "text-yellow-400" :
+    notasMes >= 10 ? "text-red-400 font-bold" :
+    notasMes >= 8  ? "text-amber-400 font-semibold" :
+    notasMes >= 6  ? "text-yellow-400" :
     "text-petroleo-300";
 
   async function handleLogout() {
@@ -62,7 +62,7 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
         {/* Contador de notas apenas para plano free */}
         {isNotas && isFree && (
           <span className={cn("text-xs tabular-nums", counterColor)}>
-            {notasMes}/20
+            {notasMes}/10
           </span>
         )}
       </Link>
@@ -99,12 +99,12 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
         </nav>
 
         {/* Banner upgrade para free (quando >= 15 notas) */}
-        {isFree && notasMes >= 15 && (
+        {isFree && notasMes >= 6 && (
           <div className="mx-3 mb-3 bg-petroleo-800 border border-petroleo-600 rounded-xl p-3">
             <p className="text-xs text-petroleo-200 mb-2">
-              {notasMes >= 20
+              {notasMes >= 10
                 ? "Limite atingido este mês."
-                : `Você usou ${notasMes}/20 notas este mês.`}
+                : `Você usou ${notasMes}/10 notas este mês.`}
             </p>
             <Link
               href="/assinatura"
@@ -146,7 +146,7 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
           {/* Contador compacto no mobile */}
           {isFree && (
             <span className={cn("text-xs tabular-nums", counterColor)}>
-              {notasMes}/20
+              {notasMes}/10
             </span>
           )}
           <button
@@ -171,7 +171,7 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
             ))}
 
             {/* Banner upgrade mobile */}
-            {isFree && notasMes >= 15 && (
+            {isFree && notasMes >= 6 && (
               <Link
                 href="/assinatura"
                 onClick={() => setMobileOpen(false)}
