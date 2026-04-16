@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /cadastro
+
+# Bloquear rotas autenticadas
+Disallow: /dashboard
+Disallow: /notas
+Disallow: /assinatura
+Disallow: /configuracoes
+Disallow: /api/
+
+Sitemap: https://www.portalmeiguia.com.br/sitemap.xml

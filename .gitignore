@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel
+
+# TypeScript
+tsconfig.tsbuildinfo
+
+# Claude Code
+.claude/
+
+# Misc
+.DS_Store
+*.log
