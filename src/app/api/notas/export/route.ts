@@ -28,8 +28,11 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = request.nextUrl;
-  const format = searchParams.get("format") || "xlsx";
-  const ano = searchParams.get("ano") || new Date().getFullYear().toString();
+  const rawFormat = searchParams.get("format") || "xlsx";
+  const format = ["xlsx", "csv"].includes(rawFormat) ? rawFormat : "xlsx";
+  const rawAno = parseInt(searchParams.get("ano") || "", 10);
+  const anoAtual = new Date().getFullYear();
+  const ano = rawAno >= 2020 && rawAno <= anoAtual + 1 ? String(rawAno) : String(anoAtual);
 
   const { data: notas, error } = await supabase
     .from("notas_fiscais")

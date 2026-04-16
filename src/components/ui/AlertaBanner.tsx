@@ -15,6 +15,9 @@ const alertConfig: Record<AlertLevel, { bg: string; border: string; text: string
 };
 
 export function AlertaBanner({ totalFaturado, percentual }: AlertaBannerProps) {
+  // Não mostrar banner para usuários sem nenhum faturamento ainda
+  if (totalFaturado <= 0) return null;
+
   const level = getAlertLevel(percentual);
   const message = getAlertMessage(percentual, totalFaturado);
   const { bg, border, text, icon: Icon } = alertConfig[level];

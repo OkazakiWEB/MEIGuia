@@ -24,10 +24,14 @@ export function NotasTable({ notas, isPro }: NotasTableProps) {
     setConfirmId(null);
 
     const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("Sessão expirada. Faça login novamente."); setDeletingId(null); return; }
+
     const { error } = await supabase
       .from("notas_fiscais")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .eq("user_id", user.id); // defense-in-depth — RLS já protege, mas garante propriedade
 
     if (error) {
       toast.error("Erro ao excluir nota.");

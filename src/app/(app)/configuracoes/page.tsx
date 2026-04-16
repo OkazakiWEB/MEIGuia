@@ -126,7 +126,7 @@ export default function ConfiguracoesPage() {
           Para excluir sua conta, entre em contato com o suporte.
         </p>
         <a
-          href="mailto:suporte@meicontrol.com.br?subject=Solicitar exclusão de conta"
+          href="mailto:suporte@portalmeiguia.com.br?subject=Solicitar exclusão de conta"
           className="text-sm text-red-600 underline"
         >
           Solicitar exclusão de conta

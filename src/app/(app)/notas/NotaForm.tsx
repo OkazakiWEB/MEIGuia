@@ -37,9 +37,15 @@ export function NotaForm({ userId, isPro, nota }: NotaFormProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const valor = parseFloat(form.valor.replace(",", "."));
+    // Normaliza separadores: "1.234,56" → "1234.56", "1,500.00" → "1500.00"
+    const rawValor = form.valor.trim().replace(/\./g, "").replace(",", ".");
+    const valor = parseFloat(rawValor);
     if (isNaN(valor) || valor <= 0) {
-      toast.error("Informe um valor válido.");
+      toast.error("Informe um valor válido (ex: 1500,00).");
+      return;
+    }
+    if (valor > 81_000) {
+      toast.error("Uma única nota não pode ultrapassar R$ 81.000.");
       return;
     }
 
@@ -89,8 +95,9 @@ export function NotaForm({ userId, isPro, nota }: NotaFormProps) {
         if (!isPro) {
           const { data: qtd } = await supabase.rpc("get_notas_mes_atual", { p_user_id: userId });
           if ((qtd ?? 0) >= 8) {
+            setLoading(false);
             setUpgradeModal({ open: true, notasMes: qtd ?? 8, reason: "warning" });
-            return; // não redireciona imediatamente — usuário verá o modal
+            return;
           }
         }
         router.push("/notas");

@@ -35,7 +35,7 @@ export default async function NotasPage({
 
   const isPro = profile?.plano === "pro";
   const totalPages = Math.ceil((count || 0) / perPage);
-  const atLimite = !isPro && (qtdMes ?? 0) >= 20;
+  const atLimite = !isPro && (qtdMes ?? 0) >= 10;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

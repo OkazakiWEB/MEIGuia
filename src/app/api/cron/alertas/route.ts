@@ -35,19 +35,25 @@ export async function GET(request: NextRequest) {
     if (error) throw error;
     if (!profiles?.length) return NextResponse.json({ processed: 0 });
 
+    // Buscar faturamento de todos os usuários de uma vez (batch — evita N queries em loop)
+    const { data: faturamentos } = await supabase
+      .from("notas_fiscais")
+      .select("user_id, valor")
+      .gte("data", `${anoAtual}-01-01`)
+      .lte("data", `${anoAtual}-12-31`);
+
+    const totalPorUser = new Map<string, number>();
+    for (const row of faturamentos ?? []) {
+      totalPorUser.set(row.user_id, (totalPorUser.get(row.user_id) ?? 0) + Number(row.valor));
+    }
+
     let emailsEnviados = 0;
     const erros: string[] = [];
 
     for (const profile of profiles) {
       try {
-        // Calcular faturamento do ano atual
-        const { data: totalData } = await supabase.rpc("get_faturamento_anual", {
-          p_user_id: profile.id,
-          p_ano: anoAtual,
-        });
-
-        const total = Number(totalData ?? 0);
-        if (total <= 0) continue;
+        const total = totalPorUser.get(profile.id) ?? 0;
+        if (!total || total <= 0) continue;
 
         const percentual = (total / LIMITE_MEI) * 100;
         const limiteRestante = Math.max(LIMITE_MEI - total, 0);

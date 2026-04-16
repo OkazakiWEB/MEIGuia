@@ -126,14 +126,31 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {/* ── Empty state para usuário sem notas ── */}
+      {totalAno === 0 && (
+        <div className="card text-center py-10 border-dashed border-2 border-gray-200 bg-gray-50/50">
+          <p className="text-4xl mb-3">📋</p>
+          <h2 className="font-semibold text-gray-700 mb-1">Nenhuma nota registrada ainda</h2>
+          <p className="text-sm text-gray-400 mb-5">
+            Registre sua primeira nota e comece a acompanhar seu faturamento.
+          </p>
+          <Link href="/notas/nova" className="btn-primary inline-flex items-center gap-2 text-sm">
+            <Plus className="w-4 h-4" />
+            Registrar primeira nota
+          </Link>
+        </div>
+      )}
+
       {/* ── Gráfico mensal ── */}
-      <div className="card">
-        <h2 className="font-semibold text-gray-900 mb-4">Faturamento mensal</h2>
-        <GraficoMensal
-          data={dadosMensais}
-          limiteSeguro={isPro ? sugestaoMensal : undefined}
-        />
-      </div>
+      {totalAno > 0 && (
+        <div className="card">
+          <h2 className="font-semibold text-gray-900 mb-4">Faturamento mensal</h2>
+          <GraficoMensal
+            data={dadosMensais}
+            limiteSeguro={isPro ? sugestaoMensal : undefined}
+          />
+        </div>
+      )}
 
       {/* ── Previsões Pro ── */}
       <ProGate feature="Previsão de Faturamento" isPro={isPro}>
