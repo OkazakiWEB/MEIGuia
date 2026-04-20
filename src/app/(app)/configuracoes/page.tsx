@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Settings, User, LogOut, Trash2, AlertTriangle, Loader2 } from "lucide-react";
+import { ContadorAccess } from "@/components/ui/ContadorAccess";
 
 export default function ConfiguracoesPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function ConfiguracoesPage() {
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   // Estado do modal de exclusão
+  const [isPro, setIsPro] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -28,12 +30,13 @@ export default function ConfiguracoesPage() {
       setUserId(user.id);
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, email")
+        .select("full_name, email, plano")
         .eq("id", user.id)
-        .single<{ full_name: string | null; email: string | null }>();
+        .single<{ full_name: string | null; email: string | null; plano: string | null }>();
 
       setFullName(profile?.full_name || "");
       setEmail(profile?.email || user.email || "");
+      setIsPro(profile?.plano === "pro");
       setLoadingProfile(false);
     }
     load();
@@ -127,6 +130,9 @@ export default function ConfiguracoesPage() {
           </form>
         )}
       </div>
+
+      {/* Modo Contador */}
+      <ContadorAccess isPro={isPro} />
 
       {/* Sessão */}
       <div className="card">
