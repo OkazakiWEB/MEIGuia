@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { NotasTable } from "./NotasTable";
-import { Plus, Download, FileText } from "lucide-react";
+import { Plus, Download, FileText, FileBarChart2 } from "lucide-react";
 import { NotasUsageBar } from "@/components/ui/NotasUsageBar";
 
 export default async function NotasPage({
@@ -55,6 +55,14 @@ export default async function NotasPage({
           {/* Export — só pro */}
           {isPro && (
             <>
+              <a
+                href={`/api/relatorio?ano=${ano}`}
+                className="btn-secondary text-sm py-2 px-3 flex items-center gap-1.5 min-h-[40px] border-petroleo-300 text-petroleo-700 hover:bg-petroleo-50"
+                title={`Baixar Resumo Anual MEI ${ano} em PDF`}
+              >
+                <FileBarChart2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Resumo PDF</span>
+              </a>
               <a
                 href={`/api/notas/export?format=xlsx&ano=${ano}`}
                 className="btn-secondary text-sm py-2 px-3 flex items-center gap-1.5 min-h-[40px]"
