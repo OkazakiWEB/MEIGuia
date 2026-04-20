@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { NotasTable } from "./NotasTable";
 import { Plus, Download, FileText } from "lucide-react";
+import { NotasUsageBar } from "@/components/ui/NotasUsageBar";
 
 export default async function NotasPage({
   searchParams,
@@ -88,15 +89,8 @@ export default async function NotasPage({
         </div>
       </div>
 
-      {/* Aviso limite free */}
-      {atLimite && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-          <p className="text-sm font-semibold text-amber-800">
-            Limite de 10 notas/mês atingido no plano Gratuito.{" "}
-            <Link href="/assinatura" className="underline">Faça upgrade para o Pro →</Link>
-          </p>
-        </div>
-      )}
+      {/* Contador de uso — só para plano gratuito */}
+      {!isPro && <NotasUsageBar used={qtdMes ?? 0} />}
 
       {/* Filtro por ano */}
       <div className="flex gap-2">

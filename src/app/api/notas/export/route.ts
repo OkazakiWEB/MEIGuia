@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import ExcelJS from "exceljs";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 /**
  * GET /api/notas/export?format=xlsx|csv&ano=2024
  * Exporta as notas fiscais. Disponível apenas para usuários Pro.
  */
 export async function GET(request: NextRequest) {
+  const rl = checkRateLimit(getClientIp(request), { limit: 20, windowMs: 60_000, prefix: "export" });
+  if (!rl.success) {
+    return NextResponse.json({ error: "Muitas requisições. Aguarde um momento." }, { status: 429 });
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 

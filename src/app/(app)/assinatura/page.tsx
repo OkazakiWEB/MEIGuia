@@ -5,10 +5,12 @@ import { Loader2 as LoaderFallback } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
-  CheckCircle, XCircle, Sparkles, CreditCard,
-  AlertCircle, Loader2, ShieldCheck, TrendingUp, Bell, FileDown,
+  Loader2, ShieldCheck, CreditCard, AlertCircle,
+  CheckCircle, XCircle, Bell, TrendingUp, Sparkles,
+  FileDown, Lock, RotateCcw,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { track } from "@vercel/analytics";
 
 interface Profile {
   plano: string;
@@ -16,14 +18,40 @@ interface Profile {
   stripe_subscription_id: string | null;
 }
 
-// ── Recursos do plano Pro orientados à dor ─────────────────────────────────
-const proFeatures = [
-  { icon: Bell,        text: "Alertas automáticos antes de ultrapassar o limite" },
-  { icon: TrendingUp,  text: "Saiba exatamente quanto ainda pode faturar no ano" },
-  { icon: TrendingUp,  text: "Previsão de quanto faturar por mês com segurança" },
-  { icon: CheckCircle, text: "Notas fiscais ilimitadas — sem travar no mês" },
-  { icon: FileDown,    text: "Exportação em Excel/CSV para sua contabilidade" },
-  { icon: ShieldCheck, text: "Histórico de anos anteriores sempre disponível" },
+type Interval = "monthly" | "annual";
+
+// ── Features reescritas como proteção, não como funcionalidades ────────────
+const PRO_FEATURES = [
+  {
+    icon: Bell,
+    headline: "Aviso antes de você se meter em problema",
+    sub: "Você recebe um alerta automático quando estiver perto do limite — antes de ser tarde demais.",
+  },
+  {
+    icon: TrendingUp,
+    headline: "Saiba exatamente quanto ainda pode ganhar",
+    sub: "Sem chute. Você vê em tempo real quanto falta para atingir o limite de R$ 81.000.",
+  },
+  {
+    icon: Sparkles,
+    headline: "Descubra quanto pode cobrar por mês com segurança",
+    sub: "O sistema calcula um teto mensal para você faturar sem risco de ultrapassar no fim do ano.",
+  },
+  {
+    icon: CheckCircle,
+    headline: "Registre quantas notas quiser",
+    sub: "Sem limite de notas por mês. Fature à vontade sem travar o sistema.",
+  },
+  {
+    icon: FileDown,
+    headline: "Leve seus dados para o contador em segundos",
+    sub: "Exporte tudo em planilha — sem precisar ficar procurando nota por nota.",
+  },
+  {
+    icon: ShieldCheck,
+    headline: "Histórico completo de todos os anos",
+    sub: "Seus dados ficam guardados com segurança — nunca perde nada.",
+  },
 ];
 
 function AssinaturaContent() {
@@ -31,15 +59,16 @@ function AssinaturaContent() {
   const success  = searchParams.get("success");
   const canceled = searchParams.get("canceled");
 
-  const [profile, setProfile]               = useState<Profile | null>(null);
-  const [loading, setLoading]               = useState(true);
+  const [profile, setProfile]                 = useState<Profile | null>(null);
+  const [loading, setLoading]                 = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [portalLoading, setPortalLoading]   = useState(false);
+  const [portalLoading, setPortalLoading]     = useState(false);
+  const [interval, setInterval]               = useState<Interval>("monthly");
 
   useEffect(() => {
     loadProfile();
     if (success)  toast.success("🎉 Plano Pro ativado! Seu MEI está protegido.");
-    if (canceled) toast.error("Assinatura cancelada. Você pode tentar novamente.");
+    if (canceled) toast.error("Assinatura cancelada. Você pode tentar novamente a qualquer hora.");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success, canceled]);
 
@@ -57,14 +86,20 @@ function AssinaturaContent() {
   }
 
   async function handleCheckout() {
+    track("checkout_started", { plano: "pro", interval });
     setCheckoutLoading(true);
     try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interval }),
+      });
       const { url, error } = await res.json();
       if (error) { toast.error(error); return; }
+      track("checkout_redirected", { interval });
       window.location.href = url;
     } catch {
-      toast.error("Erro ao iniciar checkout.");
+      toast.error("Erro ao iniciar pagamento. Tente novamente.");
     } finally {
       setCheckoutLoading(false);
     }
@@ -92,30 +127,30 @@ function AssinaturaContent() {
     );
   }
 
-  const isPro      = profile?.plano === "pro";
-  const isPastDue  = profile?.subscription_status === "past_due";
+  const isPro     = profile?.plano === "pro";
+  const isPastDue = profile?.subscription_status === "past_due";
 
   // ── Tela do assinante Pro ─────────────────────────────────────────────────
   if (isPro) {
     return (
       <div className="max-w-xl mx-auto space-y-6">
-        <div className="card border-2 border-brand-200 bg-brand-50 text-center py-8">
-          <div className="w-14 h-14 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <ShieldCheck className="w-7 h-7 text-brand-600" />
+        <div className="card border-2 border-brand-200 bg-brand-50 text-center py-10">
+          <div className="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ShieldCheck className="w-8 h-8 text-brand-600" />
           </div>
-          <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-1">Plano Pro ativo</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-brand-500 mb-2">Plano Pro ativo</p>
           <h1 className="text-2xl font-bold text-gray-900">Seu MEI está protegido 🎉</h1>
-          <p className="text-gray-500 text-sm mt-2">
-            Você tem acesso completo a todos os recursos de controle e previsão.
+          <p className="text-gray-500 text-sm mt-2 max-w-xs mx-auto">
+            Você recebe alertas automáticos e sabe exatamente quanto ainda pode faturar.
           </p>
           {isPastDue && (
-            <div className="mt-4 flex items-center justify-center gap-2 text-red-600 text-sm font-medium">
+            <div className="mt-4 flex items-center justify-center gap-2 text-red-600 text-sm font-semibold">
               <AlertCircle className="w-4 h-4" />
-              Pagamento pendente — atualize seu cartão
+              Pagamento com problema — atualize seu cartão
             </div>
           )}
-          <p className="text-xs text-brand-500 mt-3">
-            Status: {profile?.subscription_status === "active" ? "✅ Ativo" : profile?.subscription_status}
+          <p className="text-xs text-brand-500 mt-4">
+            {profile?.subscription_status === "active" ? "✅ Ativo e em dia" : `Status: ${profile?.subscription_status}`}
           </p>
         </div>
 
@@ -129,56 +164,100 @@ function AssinaturaContent() {
         </button>
 
         <p className="text-center text-xs text-gray-400">
-          Cancele quando quiser — sem multa, sem burocracia.
+          Cancele quando quiser — sem burocracia, sem multa.
         </p>
       </div>
     );
   }
 
-  // ── Tela de conversão (plano Free) ────────────────────────────────────────
-  return (
-    <div className="max-w-2xl mx-auto space-y-6">
+  // ── Preços ────────────────────────────────────────────────────────────────
+  const precoMensal  = 14.90;
+  const precoAnual   = 9.90;   // por mês no plano anual (R$ 118,80/ano)
+  const economiaPct  = Math.round((1 - precoAnual / precoMensal) * 100);
+  const precoExibido = interval === "annual" ? precoAnual : precoMensal;
 
-      {/* ── Hero: pergunta que gera dor ── */}
-      <div className="text-center space-y-2 pt-2">
-        <p className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
-          ⚠️ Você sabe quanto ainda pode faturar este ano?
-        </p>
+  // ── Tela de conversão ─────────────────────────────────────────────────────
+  return (
+    <div className="max-w-2xl mx-auto space-y-8">
+
+      {/* ── Hero ── */}
+      <div className="text-center space-y-3 pt-2">
+        <span className="inline-block bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+          Risco real para o seu negócio
+        </span>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight">
-          Ultrapassar o limite do MEI<br className="hidden sm:block" /> pode custar muito caro
+          Quem ultrapassa o limite<br className="hidden sm:block" /> pode perder o MEI
         </h1>
-        <p className="text-gray-500 text-sm sm:text-base max-w-md mx-auto">
-          Quem passa de R$&nbsp;81.000 sem perceber pode perder o MEI, pagar impostos retroativos
-          e ter problemas com a Receita Federal.
+        <p className="text-gray-500 text-sm sm:text-base max-w-sm mx-auto">
+          Passar de R$&nbsp;81.000 por ano sem perceber pode gerar multas, cobranças retroativas
+          e até o cancelamento do seu MEI.
         </p>
       </div>
 
-      {/* ── Stat de prova social / urgência ── */}
+      {/* ── Prova social ── */}
       <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
-        <span className="text-2xl flex-shrink-0">📊</span>
-        <p className="text-sm text-amber-800">
-          <span className="font-bold">Mais de 60% dos MEIs não controlam o faturamento corretamente</span>
-          {" "}e só descobrem o problema quando já ultrapassaram o limite.
+        <span className="text-xl flex-shrink-0">📊</span>
+        <p className="text-sm text-amber-800 leading-relaxed">
+          <span className="font-bold">Mais de 60% dos MEIs não monitoram o faturamento</span>
+          {" "}e só percebem o problema quando já é tarde. O Portal MEIguia foi criado para evitar exatamente isso.
         </p>
+      </div>
+
+      {/* ── Toggle mensal / anual ── */}
+      <div className="flex flex-col items-center gap-2">
+        <div className="inline-flex items-center bg-gray-100 rounded-xl p-1">
+          <button
+            onClick={() => setInterval("monthly")}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+              interval === "monthly"
+                ? "bg-white shadow text-gray-900"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Mensal
+          </button>
+          <button
+            onClick={() => setInterval("annual")}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+              interval === "annual"
+                ? "bg-white shadow text-gray-900"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Anual
+            <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              -{economiaPct}%
+            </span>
+          </button>
+        </div>
+        {interval === "annual" && (
+          <p className="text-xs text-green-600 font-semibold">
+            Você economiza R$&nbsp;{((precoMensal - precoAnual) * 12).toFixed(0).replace(".", ",")}&nbsp;por ano
+          </p>
+        )}
       </div>
 
       {/* ── Cards dos planos ── */}
-      <div className="grid sm:grid-cols-2 gap-4 items-start">
+      <div className="grid sm:grid-cols-2 gap-4">
 
-        {/* Plano Gratuito — propositalmente fraco */}
-        <div className="card border border-gray-200 bg-gray-50">
+        {/* Gratuito */}
+        <div className="flex flex-col rounded-2xl border border-gray-200 bg-gray-50 p-6">
+          <div className="h-5 mb-1" aria-hidden />
+
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Gratuito</p>
-          <p className="text-2xl font-bold text-gray-700">R$ 0</p>
-          <p className="text-xs text-gray-400 mb-4">para sempre</p>
+          <div className="flex items-baseline gap-1 mb-0.5">
+            <span className="text-3xl font-extrabold text-gray-700">R$&nbsp;0</span>
+          </div>
+          <p className="text-xs text-transparent select-none mb-4 h-4">—</p>
 
-          <ul className="space-y-2.5 mb-6">
+          <ul className="space-y-2.5 flex-1">
             {[
-              { ok: true,  text: "Até 10 notas por mês" },
-              { ok: true,  text: "Dashboard básico de faturamento" },
-              { ok: false, text: "Alertas antes de ultrapassar o limite" },
-              { ok: false, text: "Saiba quanto ainda pode faturar" },
-              { ok: false, text: "Previsão e sugestão mensal" },
-              { ok: false, text: "Exportação para contabilidade" },
+              { ok: true,  text: "Até 10 registros por mês" },
+              { ok: true,  text: "Veja quanto você já faturou" },
+              { ok: false, text: "Aviso antes de ultrapassar o limite" },
+              { ok: false, text: "Quanto ainda posso ganhar este ano?" },
+              { ok: false, text: "Quanto posso cobrar por mês com segurança?" },
+              { ok: false, text: "Exportar para o contador" },
             ].map(({ ok, text }) => (
               <li key={text} className="flex items-start gap-2 text-sm">
                 {ok
@@ -189,151 +268,161 @@ function AssinaturaContent() {
             ))}
           </ul>
 
-          <p className="text-xs text-gray-400 text-center">Plano atual</p>
+          <div className="mt-6">
+            <div className="w-full py-3.5 rounded-xl border border-gray-300 bg-white text-center text-sm font-semibold text-gray-400">
+              Plano atual
+            </div>
+            <p className="text-xs text-center mt-2 h-4 text-transparent select-none">—</p>
+          </div>
         </div>
 
-        {/* Plano Pro — hero visual */}
-        <div className="card border-2 border-brand-500 bg-white relative shadow-lg shadow-brand-100">
-          {/* Badge destaque */}
+        {/* Pro */}
+        <div className="flex flex-col rounded-2xl border-2 border-brand-500 bg-white relative shadow-lg shadow-brand-100 p-6">
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-600 text-white text-xs font-bold px-4 py-1 rounded-full whitespace-nowrap">
             ⭐ Mais escolhido por MEIs ativos
           </div>
+          <div className="h-5 mb-1" aria-hidden />
 
-          <p className="text-xs font-semibold text-brand-500 uppercase tracking-widest mb-3 mt-2">Pro</p>
+          <p className="text-xs font-semibold text-brand-500 uppercase tracking-widest mb-3">Pro — Proteção total</p>
           <div className="flex items-baseline gap-1 mb-0.5">
-            <span className="text-3xl font-extrabold text-gray-900">R$&nbsp;14,90</span>
+            <span className="text-3xl font-extrabold text-gray-900">R$&nbsp;{precoExibido.toFixed(2).replace(".", ",")}</span>
             <span className="text-gray-400 text-sm">/mês</span>
           </div>
-          <p className="text-xs text-brand-500 font-medium mb-4">Menos de R$&nbsp;0,50 por dia</p>
+          <p className="text-xs text-brand-500 font-medium mb-4 h-4">
+            {interval === "annual"
+              ? `Cobrado R$&nbsp;${(precoAnual * 12).toFixed(2).replace(".", ",")} por ano`
+              : "Menos de R$&nbsp;0,50 por dia"}
+          </p>
 
-          <ul className="space-y-2.5 mb-6">
-            {proFeatures.map(({ icon: Icon, text }) => (
+          <ul className="space-y-2.5 flex-1">
+            {[
+              "Aviso antes de ultrapassar o limite",
+              "Quanto ainda posso ganhar este ano?",
+              "Quanto posso cobrar por mês com segurança?",
+              "Registros ilimitados — sem travar",
+              "Exportar para o contador em segundos",
+              "Histórico completo sempre disponível",
+            ].map((text) => (
               <li key={text} className="flex items-start gap-2 text-sm">
-                <Icon className="w-4 h-4 text-brand-500 flex-shrink-0 mt-0.5" />
+                <CheckCircle className="w-4 h-4 text-brand-500 flex-shrink-0 mt-0.5" />
                 <span className="text-gray-700">{text}</span>
               </li>
             ))}
           </ul>
 
-          <button
-            onClick={handleCheckout}
-            disabled={checkoutLoading}
-            className="btn-primary w-full py-3.5 text-base font-bold flex items-center justify-center gap-2"
-          >
-            {checkoutLoading ? (
-              <><Loader2 className="w-5 h-5 animate-spin" /> Aguarde...</>
-            ) : (
-              <><ShieldCheck className="w-5 h-5" /> Proteger meu MEI agora</>
-            )}
-          </button>
+          <div className="mt-6">
+            <button
+              onClick={handleCheckout}
+              disabled={checkoutLoading}
+              className="btn-primary w-full py-3.5 text-base font-bold flex items-center justify-center gap-2"
+            >
+              {checkoutLoading
+                ? <><Loader2 className="w-5 h-5 animate-spin" /> Aguarde...</>
+                : <><ShieldCheck className="w-5 h-5" /> Proteger meu MEI agora</>}
+            </button>
+            <p className="text-xs text-center mt-2 h-4 text-gray-400">
+              Cancele quando quiser · Sem fidelidade
+            </p>
+          </div>
         </div>
       </div>
 
       {/* ── Selos de confiança ── */}
       <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-        <span className="text-xs text-gray-400 flex items-center gap-1.5">🔒 Pagamento 100% seguro (Stripe)</span>
-        <span className="text-xs text-gray-400 flex items-center gap-1.5">🔄 Cancele quando quiser</span>
-        <span className="text-xs text-gray-400 flex items-center gap-1.5">📅 Sem fidelidade</span>
-        <span className="text-xs text-gray-400 flex items-center gap-1.5">🛡️ Seus dados protegidos</span>
+        <span className="text-xs text-gray-400 flex items-center gap-1.5"><Lock className="w-3 h-3" /> Pagamento seguro via Stripe</span>
+        <span className="text-xs text-gray-400 flex items-center gap-1.5"><RotateCcw className="w-3 h-3" /> Cancele quando quiser</span>
+        <span className="text-xs text-gray-400 flex items-center gap-1.5"><ShieldCheck className="w-3 h-3" /> Seus dados protegidos</span>
       </div>
 
-      {/* ── O que acontece se eu não controlar? (bloco de risco) ── */}
-      <div className="bg-red-50 border border-red-100 rounded-2xl p-5 space-y-3">
-        <p className="font-semibold text-red-800 text-sm flex items-center gap-2">
-          <AlertCircle className="w-4 h-4" />
-          O que pode acontecer se você ultrapassar sem perceber:
+      {/* ── Bloco de risco ── */}
+      <div className="bg-red-50 border border-red-200 rounded-2xl p-5 space-y-4">
+        <p className="font-bold text-red-800 text-sm flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          O que pode acontecer se você ultrapassar o limite sem perceber:
         </p>
-        <ul className="space-y-1.5">
+        <ul className="space-y-2">
           {[
-            "Perda do enquadramento como MEI",
-            "Cobrança retroativa de impostos (INSS, ISS, ICMS)",
-            "Obrigatoriedade de contratar contador imediatamente",
-            "Multas e pendências na Receita Federal",
-          ].map((r) => (
-            <li key={r} className="flex items-start gap-2 text-sm text-red-700">
-              <span className="text-red-400 mt-0.5 flex-shrink-0">→</span>
-              {r}
+            { emoji: "❌", text: "Você perde o MEI e vira Microempresa — com muito mais imposto" },
+            { emoji: "💸", text: "Receita Federal pode cobrar INSS, ISS e ICMS retroativos" },
+            { emoji: "📋", text: "Obrigação imediata de contratar contador (mais gasto)" },
+            { emoji: "⚠️",  text: "Multas e pendências que aparecem na hora de fazer empréstimo ou financiamento" },
+          ].map(({ emoji, text }) => (
+            <li key={text} className="flex items-start gap-2.5 text-sm text-red-700">
+              <span className="flex-shrink-0">{emoji}</span>
+              <span>{text}</span>
             </li>
           ))}
         </ul>
-        <p className="text-xs text-red-500 font-medium">
-          O plano Pro custa menos de R$&nbsp;0,50 por dia. O problema que ele evita pode custar muito mais.
-        </p>
+        <div className="bg-red-100 rounded-xl p-3">
+          <p className="text-xs text-red-700 font-semibold text-center">
+            O plano Pro custa menos de R$&nbsp;0,50 por dia.
+            O problema que ele evita pode custar muito mais.
+          </p>
+        </div>
       </div>
 
-      {/* ── Comparação visual compacta ── */}
-      <div className="card overflow-x-auto">
-        <h3 className="font-semibold text-gray-900 mb-4 text-sm">Comparação detalhada</h3>
-        <table className="w-full text-sm min-w-[320px]">
-          <thead>
-            <tr className="border-b border-gray-100">
-              <th className="text-left py-2 text-gray-400 font-medium text-xs">Recurso</th>
-              <th className="text-center py-2 text-gray-400 font-medium text-xs">Gratuito</th>
-              <th className="text-center py-2 text-brand-600 font-bold text-xs">Pro</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {[
-              ["Notas por mês",                    "10",  "Ilimitadas"],
-              ["Alerta antes de ultrapassar limite","❌",  "✅"],
-              ["Quanto ainda pode faturar",         "❌",  "✅"],
-              ["Previsão e sugestão mensal",        "❌",  "✅"],
-              ["Exportação Excel/CSV",              "❌",  "✅"],
-              ["Histórico de anos anteriores",      "❌",  "✅"],
-            ].map(([feat, free, pro]) => (
-              <tr key={feat}>
-                <td className="py-2.5 text-gray-700">{feat}</td>
-                <td className="py-2.5 text-center text-gray-400">{free}</td>
-                <td className="py-2.5 text-center text-brand-700 font-semibold">{pro}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* ── Features detalhadas ── */}
+      <div className="card space-y-5">
+        <h3 className="font-bold text-gray-900">O que você ganha com o Pro</h3>
+        <div className="space-y-4">
+          {PRO_FEATURES.map(({ icon: Icon, headline, sub }) => (
+            <div key={headline} className="flex items-start gap-3">
+              <div className="w-9 h-9 bg-brand-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Icon className="w-4 h-4 text-brand-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-800">{headline}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* ── FAQ ── */}
       <div className="card space-y-4">
-        <h3 className="font-semibold text-gray-900 text-sm">Dúvidas frequentes</h3>
+        <h3 className="font-bold text-gray-900 text-sm">Perguntas frequentes</h3>
         {[
           {
-            q: "Posso cancelar quando quiser?",
-            a: "Sim, a qualquer momento, sem multa. Você mantém acesso Pro até o fim do mês pago.",
+            q: "Posso cancelar a qualquer momento?",
+            a: "Sim. Sem multa, sem burocracia. Você cancela em um clique e mantém o acesso Pro até o fim do período pago.",
           },
           {
-            q: "Como é feita a cobrança?",
-            a: "Mensal e automática via cartão de crédito, processada pelo Stripe. Você recebe o comprovante por e-mail.",
+            q: "Como funciona a cobrança?",
+            a: "Todo mês (ou uma vez por ano, se preferir) é cobrado no cartão de crédito via Stripe. Você recebe o comprovante direto no e-mail.",
+          },
+          {
+            q: "Vale a pena para quem ainda fatura pouco?",
+            a: "Principalmente para quem fatura pouco — é quando o crescimento pega de surpresa. Saber exatamente quanto falta para o limite evita o susto no final do ano.",
           },
           {
             q: "Meus dados ficam seguros?",
-            a: "Sim. Utilizamos Supabase com criptografia e isolamento de dados — ninguém além de você acessa suas informações.",
-          },
-          {
-            q: "Vale a pena para quem fatura pouco?",
-            a: "Principalmente para quem fatura pouco, porque é quando o crescimento mais surpreende. Saber o limite restante evita susto no final do ano.",
+            a: "Sim. Usamos banco de dados com criptografia e isolamento total. Só você acessa seus registros.",
           },
         ].map(({ q, a }) => (
           <div key={q} className="border-b border-gray-50 last:border-0 pb-3 last:pb-0">
-            <p className="font-medium text-gray-900 text-sm">{q}</p>
+            <p className="font-semibold text-gray-900 text-sm">{q}</p>
             <p className="text-gray-500 text-sm mt-1">{a}</p>
           </div>
         ))}
       </div>
 
       {/* ── CTA final ── */}
-      <div className="text-center space-y-3 pb-4">
+      <div className="text-center space-y-3 pb-6">
+        <p className="text-sm text-gray-500 font-medium">Ainda na dúvida?</p>
         <button
           onClick={handleCheckout}
           disabled={checkoutLoading}
           className="btn-primary px-8 py-4 text-base font-bold flex items-center justify-center gap-2 mx-auto"
         >
-          {checkoutLoading ? (
-            <><Loader2 className="w-5 h-5 animate-spin" /> Aguarde...</>
-          ) : (
-            <><Sparkles className="w-5 h-5" /> Quero controle total do meu MEI</>
-          )}
+          {checkoutLoading
+            ? <><Loader2 className="w-5 h-5 animate-spin" /> Aguarde...</>
+            : <><ShieldCheck className="w-5 h-5" /> Proteger meu MEI por R$&nbsp;{precoExibido.toFixed(2).replace(".", ",")}/mês</>}
         </button>
         <p className="text-xs text-gray-400">
-          R$&nbsp;14,90/mês • Cancele quando quiser • Sem fidelidade
+          {interval === "annual"
+            ? `R$&nbsp;${(precoAnual * 12).toFixed(2).replace(".", ",")} cobrado uma vez por ano · Cancele quando quiser`
+            : "R$&nbsp;14,90/mês · Cancele quando quiser · Sem fidelidade"}
         </p>
       </div>
 

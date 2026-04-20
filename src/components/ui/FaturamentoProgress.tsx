@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { formatCurrency, getAlertLevel, getProgressColor, calcPercentual } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +15,15 @@ export function FaturamentoProgress({ totalFaturado }: FaturamentoProgressProps)
   const level = getAlertLevel(percentual);
   const barColor = getProgressColor(level);
   const restante = Math.max(MEI_LIMITE - totalFaturado, 0);
+
+  // Anima de 0 → percentual real ao montar (efeito de "crescendo")
+  const [barWidth, setBarWidth] = useState(0);
+
+  useEffect(() => {
+    // Pequeno delay para o browser pintar o estado inicial (largura 0) antes de animar
+    const t = setTimeout(() => setBarWidth(Math.min(percentual, 100)), 120);
+    return () => clearTimeout(t);
+  }, [percentual]);
 
   return (
     <div>
@@ -30,8 +42,8 @@ export function FaturamentoProgress({ totalFaturado }: FaturamentoProgressProps)
       {/* Barra de progresso */}
       <div className="w-full bg-gray-200 rounded-full h-5 mb-2 overflow-hidden">
         <div
-          className={cn("h-5 rounded-full transition-all duration-700", barColor)}
-          style={{ width: `${Math.min(percentual, 100)}%` }}
+          className={cn("h-5 rounded-full transition-all duration-700 ease-out", barColor)}
+          style={{ width: `${barWidth}%` }}
         />
       </div>
 

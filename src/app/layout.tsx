@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat, Raleway, Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { Analytics } from "@vercel/analytics/next";
 
 // Fontes self-hosted via next/font — sem @import bloqueante
 const montserrat = Montserrat({
@@ -28,12 +29,13 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Portal MEIguia — Controle de Faturamento para MEI",
   description:
-    "Controle suas notas fiscais, monitore o limite de R$ 81.000 e nunca mais ultrapasse o faturamento anual do MEI.",
-  keywords: ["MEI", "microempreendedor", "notas fiscais", "faturamento", "controle", "MEIguia"],
+    "Evite ultrapassar o limite de R$ 81.000 do MEI. Controle suas notas fiscais, receba alertas automáticos e veja seu faturamento em tempo real.",
+  keywords: ["MEI", "microempreendedor", "notas fiscais", "faturamento", "controle", "limite MEI", "MEIguia"],
   openGraph: {
-    title: "Portal MEIguia",
-    description: "Controle de faturamento inteligente para Microempreendedores",
+    title: "Portal MEIguia — Nunca mais ultrapasse o limite do MEI",
+    description: "Controle de faturamento com alertas automáticos para Microempreendedores Individuais.",
     type: "website",
+    url: "https://www.portalmeiguia.com.br",
   },
 };
 
@@ -49,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             style: { borderRadius: "8px", fontSize: "14px" },
           }}
         />
+        <Analytics />
       </body>
     </html>
   );

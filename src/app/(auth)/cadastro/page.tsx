@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { Logo } from "@/components/ui/Logo";
+import { track } from "@vercel/analytics";
 
 function CadastroForm() {
   const router = useRouter();
@@ -38,6 +39,7 @@ function CadastroForm() {
 
     // Se a sessão foi criada imediatamente (confirmação de e-mail desabilitada)
     if (data.session) {
+      track("signup_completed", { method: "email", plan: plan || "free" });
       toast.success("Conta criada! Bem-vindo ao Portal MEIguia 🎉");
       router.push(plan === "pro" ? "/assinatura?upgrade=true" : "/dashboard");
       router.refresh();
@@ -50,6 +52,7 @@ function CadastroForm() {
   }
 
   async function handleGoogleSignup() {
+    track("signup_started", { method: "google" });
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },

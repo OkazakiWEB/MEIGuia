@@ -2,11 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { stripe, STRIPE_PRO_PRICE_ID } from "@/lib/stripe";
 
+const STRIPE_PRO_ANNUAL_PRICE_ID = process.env.STRIPE_PRO_ANNUAL_PRICE_ID ?? "";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+
 /**
  * POST /api/stripe/checkout
  * Cria uma sessão Stripe Checkout para assinar o plano Pro.
  */
 export async function POST(request: NextRequest) {
+  // Rate limiting: 5 tentativas por minuto por IP
+  const rl = checkRateLimit(getClientIp(request), { limit: 5, windowMs: 60_000, prefix: "checkout" });
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Muitas tentativas. Aguarde um momento e tente novamente." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+    );
+  }
+
   // Validação de configuração — falha rápida com mensagem clara
   if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.includes("PLACEHOLDER")) {
     console.error("[Checkout] STRIPE_SECRET_KEY não configurada");
@@ -18,6 +30,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const body = await request.json().catch(() => ({}));
+    const interval: "monthly" | "annual" = body?.interval === "annual" ? "annual" : "monthly";
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -55,15 +70,18 @@ export async function POST(request: NextRequest) {
         .eq("id", user.id);
     }
 
+    // Selecionar price ID conforme o intervalo
+    const priceId = interval === "annual" && STRIPE_PRO_ANNUAL_PRICE_ID
+      ? STRIPE_PRO_ANNUAL_PRICE_ID
+      : STRIPE_PRO_PRICE_ID;
+
     // Criar sessão de Checkout
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      // Métodos de pagamento aceitos: cartão, PIX e Boleto (PIX/Boleto precisam estar
-      // habilitados no Stripe Dashboard → Settings → Payment Methods)
-      payment_method_types: ["card", "pix", "boleto"],
+      payment_method_types: ["card"],
       line_items: [
         {
-          price: STRIPE_PRO_PRICE_ID,
+          price: priceId,
           quantity: 1,
         },
       ],

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { FaturamentoProgress } from "@/components/ui/FaturamentoProgress";
 import { AlertaBanner } from "@/components/ui/AlertaBanner";
+import { EstimativaCard } from "@/components/ui/EstimativaCard";
 import { GraficoMensalLazy as GraficoMensal } from "@/components/charts/GraficoMensalLazy";
 import { ProGate } from "@/components/ui/ProGate";
 import Link from "next/link";
@@ -9,7 +10,10 @@ import {
   formatCurrency, calcPercentual, calcPrevisaoAnual, calcSugestaoMensal,
 } from "@/lib/utils";
 import { TrendingUp, FileText, Calendar, Plus, Sparkles } from "lucide-react";
+import { NotasUsageBar } from "@/components/ui/NotasUsageBar";
 import type { NotaFiscal } from "@/types/database";
+
+const DESCRICAO_ESTIMATIVA = "Faturamento acumulado antes do cadastro";
 
 // Nomes abreviados dos meses em pt-BR
 const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
@@ -19,10 +23,18 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Buscar perfil, notas do ano e contagem do mês em paralelo
   const anoAtual = new Date().getFullYear();
-  const [{ data: profile }, { data: notas }, { data: notasMesCount }] = await Promise.all([
+
+  // Buscar perfil, total anual via RPC, notas do ano (para gráfico + recentes) e contagem do mês — em paralelo
+  const [
+    { data: profile },
+    { data: totalAnoRpc },
+    { data: notas },
+    { data: notasMesCount },
+  ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).single(),
+    // RPC calcula o total no banco — mais eficiente que buscar todas as rows e fazer .reduce()
+    supabase.rpc("get_faturamento_anual", { p_user_id: user.id }),
     supabase
       .from("notas_fiscais")
       .select("*")
@@ -35,13 +47,24 @@ export default async function DashboardPage() {
 
   const isPro = profile?.plano === "pro";
 
-  // Calcular totais
-  const totalAno = (notas || []).reduce((sum, n) => sum + Number(n.valor), 0);
+  // Total anual vem do RPC; fallback para .reduce() se a RPC falhar
+  const totalAno = totalAnoRpc != null
+    ? Number(totalAnoRpc)
+    : (notas || []).reduce((sum, n) => sum + Number(n.valor), 0);
+
   const percentual = calcPercentual(totalAno);
 
-  // Contar notas do mês atual
-  const mesAtual = new Date().getMonth(); // 0-indexed
-  const notasMes = (notas || []).filter((n) => {
+  // Separar nota de estimativa (onboarding) das notas reais
+  const notaEstimativa = (notas || []).find((n) => n.descricao === DESCRICAO_ESTIMATIVA);
+  const totalEstimativa = notaEstimativa ? Number(notaEstimativa.valor) : 0;
+  const notasReaisLista = (notas || []).filter((n) => n.descricao !== DESCRICAO_ESTIMATIVA);
+  const totalNotasReais = notasReaisLista.reduce((sum, n) => sum + Number(n.valor), 0);
+  // Mostrar card de breakdown se há estimativa do onboarding
+  const temEstimativa = totalEstimativa > 0;
+
+  // Total e contagem do mês atual (apenas notas reais — exclui estimativa)
+  const mesAtual = new Date().getMonth();
+  const notasMes = notasReaisLista.filter((n) => {
     const m = new Date(n.data + "T00:00:00").getMonth();
     return m === mesAtual;
   });
@@ -55,9 +78,10 @@ export default async function DashboardPage() {
       .reduce((sum, n) => sum + Number(n.valor), 0),
   }));
 
-  // Previsões (apenas Pro)
+  // Previsões (apenas Pro, e apenas quando há faturamento real)
   const previsaoAnual = calcPrevisaoAnual(totalAno);
   const sugestaoMensal = calcSugestaoMensal(totalAno);
+  const mostrarPrevisoes = isPro && totalNotasReais > 0;
 
   const qtdNotasMes = notasMesCount ?? 0;
 
@@ -85,22 +109,33 @@ export default async function DashboardPage() {
         <FaturamentoProgress totalFaturado={totalAno} />
       </div>
 
+      {/* ── Breakdown estimativa vs notas reais ── */}
+      {temEstimativa && (
+        <EstimativaCard
+          estimativa={totalEstimativa}
+          notasReais={totalNotasReais}
+          total={totalAno}
+        />
+      )}
+
       {/* ── Cards de métricas ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          label="Notas este mês"
-          value={String(notasMes.length)}
-          sublabel={!isPro && qtdNotasMes >= 6 ? `⚠️ ${qtdNotasMes}/10 usadas` : undefined}
+          label="Notas registradas"
+          value={String(notasReaisLista.length)}
+          sublabel={!isPro ? `${qtdNotasMes}/10 este mês` : undefined}
           icon={<FileText className="w-5 h-5 text-brand-600" />}
         />
         <MetricCard
-          label="Faturado este mês"
-          value={formatCurrency(totalMes)}
+          label="Registrado este mês"
+          value={totalMes > 0 ? formatCurrency(totalMes) : "—"}
+          sublabel={totalMes === 0 ? "Nenhuma nota este mês" : undefined}
           icon={<Calendar className="w-5 h-5 text-green-600" />}
         />
         <MetricCard
           label="Total no ano"
           value={formatCurrency(totalAno)}
+          sublabel={temEstimativa ? "inclui estimativa" : undefined}
           icon={<TrendingUp className="w-5 h-5 text-orange-600" />}
         />
         <MetricCard
@@ -110,39 +145,47 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* ── Aviso limite free ── */}
-      {!isPro && qtdNotasMes >= 8 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-          <span className="text-xl">⚠️</span>
-          <div>
-            <p className="text-sm font-semibold text-amber-800">
-              Você usou {qtdNotasMes}/10 notas gratuitas este mês
+      {/* ── Contador de notas (plano free) ── */}
+      {!isPro && <NotasUsageBar used={qtdNotasMes} />}
+
+      {/* ── Empty state: usuário sem notas reais ── */}
+      {totalNotasReais === 0 && !temEstimativa && (
+        <div className="card border-dashed border-2 border-gray-200 bg-gray-50/50">
+          <div className="text-center py-6 sm:py-10">
+            <p className="text-4xl mb-3">📋</p>
+            <h2 className="font-semibold text-gray-700 mb-1">Nenhuma nota registrada ainda</h2>
+            <p className="text-sm text-gray-400 mb-5 max-w-xs mx-auto">
+              Registre sua primeira nota e comece a controlar seu faturamento em tempo real.
             </p>
-            <p className="text-sm text-amber-700 mt-1">
-              Faça upgrade para o Pro e emita notas ilimitadas.{" "}
-              <Link href="/assinatura" className="underline font-semibold">Proteger meu MEI →</Link>
+            <Link href="/notas/nova" className="btn-primary inline-flex items-center gap-2 text-sm">
+              <Plus className="w-4 h-4" />
+              Registrar primeira nota
+            </Link>
+          </div>
+
+          {/* Exemplo visual de como ficará o dashboard com dados */}
+          <div className="border-t border-dashed border-gray-200 pt-5 mt-2">
+            <p className="text-xs text-center text-gray-400 mb-4 font-medium uppercase tracking-wide">
+              Assim que você registrar notas, verá:
             </p>
+            <div className="grid grid-cols-3 gap-3 opacity-40 pointer-events-none select-none">
+              {[
+                { label: "Faturamento do mês", value: "R$ 4.500" },
+                { label: "Total no ano", value: "R$ 32.000" },
+                { label: "Disponível", value: "R$ 49.000" },
+              ].map(({ label, value }) => (
+                <div key={label} className="bg-white rounded-xl p-3 text-center shadow-sm">
+                  <p className="text-xs text-gray-400 mb-1">{label}</p>
+                  <p className="text-sm font-bold text-gray-700">{value}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
-      {/* ── Empty state para usuário sem notas ── */}
-      {totalAno === 0 && (
-        <div className="card text-center py-10 border-dashed border-2 border-gray-200 bg-gray-50/50">
-          <p className="text-4xl mb-3">📋</p>
-          <h2 className="font-semibold text-gray-700 mb-1">Nenhuma nota registrada ainda</h2>
-          <p className="text-sm text-gray-400 mb-5">
-            Registre sua primeira nota e comece a acompanhar seu faturamento.
-          </p>
-          <Link href="/notas/nova" className="btn-primary inline-flex items-center gap-2 text-sm">
-            <Plus className="w-4 h-4" />
-            Registrar primeira nota
-          </Link>
-        </div>
-      )}
-
       {/* ── Gráfico mensal ── */}
-      {totalAno > 0 && (
+      {totalNotasReais > 0 && (
         <div className="card">
           <h2 className="font-semibold text-gray-900 mb-4">Faturamento mensal</h2>
           <GraficoMensal
@@ -152,8 +195,8 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* ── Previsões Pro ── */}
-      <ProGate feature="Previsão de Faturamento" isPro={isPro}>
+      {/* ── Previsões Pro — ocultas se não Pro ou se totalAno = 0 ── */}
+      {mostrarPrevisoes ? (
         <div className="grid md:grid-cols-2 gap-4">
           <div className="card border-brand-100">
             <div className="flex items-start gap-3">
@@ -184,10 +227,24 @@ export default async function DashboardPage() {
             </div>
           </div>
         </div>
-      </ProGate>
+      ) : !isPro && totalNotasReais > 0 ? (
+        // Teaser do ProGate apenas quando há dados para mostrar
+        <ProGate feature="Previsão de Faturamento" isPro={false}>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="card border-brand-100 opacity-60">
+              <p className="text-sm text-gray-500">Previsão anual</p>
+              <p className="text-2xl font-bold text-gray-300">R$ ——</p>
+            </div>
+            <div className="card border-green-100 opacity-60">
+              <p className="text-sm text-gray-500">Sugestão mensal</p>
+              <p className="text-2xl font-bold text-gray-300">R$ ——/mês</p>
+            </div>
+          </div>
+        </ProGate>
+      ) : null}
 
-      {/* ── Histórico: últimas notas ── */}
-      <RecentNotes notas={(notas || []).slice(0, 5)} />
+      {/* ── Histórico: últimas notas reais ── */}
+      <RecentNotes notas={notasReaisLista.slice(0, 5)} />
     </div>
   );
 }
@@ -223,14 +280,16 @@ function RecentNotes({ notas }: { notas: NotaFiscal[] }) {
       <div className="space-y-2">
         {notas.map((nota) => (
           <div key={nota.id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-            <div>
-              <p className="text-sm font-medium text-gray-900">{nota.descricao || "Sem descrição"}</p>
+            <div className="min-w-0 mr-4">
+              <p className="text-sm font-medium text-gray-900 truncate">{nota.descricao || "Sem descrição"}</p>
               <p className="text-xs text-gray-400">
                 {nota.cliente && `${nota.cliente} • `}
                 {new Date(nota.data + "T00:00:00").toLocaleDateString("pt-BR")}
               </p>
             </div>
-            <span className="text-sm font-semibold text-gray-900">{formatCurrency(Number(nota.valor))}</span>
+            <span className="text-sm font-semibold text-gray-900 whitespace-nowrap flex-shrink-0">
+              {formatCurrency(Number(nota.valor))}
+            </span>
           </div>
         ))}
       </div>

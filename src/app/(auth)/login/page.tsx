@@ -93,13 +93,6 @@ function LoginForm() {
           </button>
         </form>
 
-        <div className="mt-4 p-3 bg-agua-50 border border-agua-200 rounded-lg">
-          <p className="text-xs text-agua-700 font-medium mb-1">🧪 Conta de demonstração</p>
-          <p className="text-xs text-agua-600">
-            E-mail: <span className="font-mono font-semibold">demo@meiguia.com.br</span><br />
-            Senha: <span className="font-mono font-semibold">demo123456</span>
-          </p>
-        </div>
       </div>
 
       <p className="text-center text-sm text-gray-500 mt-6">
