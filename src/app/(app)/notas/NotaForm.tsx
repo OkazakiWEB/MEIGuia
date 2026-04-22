@@ -33,7 +33,21 @@ export function NotaForm({ userId, isPro, nota }: NotaFormProps) {
   const [showDetails, setShowDetails] = useState(isEditing && !!(nota?.descricao || nota?.cliente || nota?.numero_nf));
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    if (name === "valor") {
+      // Remove tudo que não é dígito
+      const digits = value.replace(/\D/g, "");
+      if (!digits) { setForm((prev) => ({ ...prev, valor: "" })); return; }
+      // Interpreta como centavos: últimos 2 dígitos = centavos
+      const cents = parseInt(digits, 10);
+      const reais = Math.floor(cents / 100);
+      const centavos = cents % 100;
+      const formatted =
+        reais.toLocaleString("pt-BR") + "," + String(centavos).padStart(2, "0");
+      setForm((prev) => ({ ...prev, valor: formatted }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -92,6 +106,14 @@ export function NotaForm({ userId, isPro, nota }: NotaFormProps) {
           toast.error("Erro ao criar nota.");
         }
       } else {
+        // Remover nota de estimativa do onboarding (se existir) — a partir da primeira nota real
+        // o total passa a refletir apenas notas cadastradas pelo usuário
+        await supabase
+          .from("notas_fiscais")
+          .delete()
+          .eq("user_id", userId)
+          .eq("descricao", "Faturamento acumulado antes do cadastro");
+
         // Buscar novo total para o toast contextual
         const { data: novoTotal } = await supabase.rpc("get_faturamento_anual", { p_user_id: userId });
         const totalAtual = Number(novoTotal ?? 0);

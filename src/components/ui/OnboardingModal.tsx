@@ -5,13 +5,12 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { track } from "@vercel/analytics";
 import { Loader2, ChevronLeft, HelpCircle } from "lucide-react";
+import { LIMITE_MEI } from "@/lib/constants";
 
 interface OnboardingModalProps {
   userId: string;
   userName: string;
 }
-
-const LIMITE_MEI = 81_000;
 const ANO_ATUAL  = new Date().getFullYear();
 const MES_ATUAL  = new Date().getMonth() + 1; // 1-12
 
@@ -222,7 +221,7 @@ export function OnboardingModal({ userId, userName }: OnboardingModalProps) {
                   <button
                     key={v}
                     onClick={() => { setSelDireto(v); setValorDireto(""); }}
-                    className={`py-2.5 px-3 rounded-xl text-sm font-semibold border-2 transition-all ${
+                    className={`py-3 px-3 min-h-[44px] rounded-xl text-sm font-semibold border-2 transition-all ${
                       selDireto === v
                         ? "border-brand-500 bg-brand-50 text-brand-700"
                         : "border-gray-200 bg-white text-gray-600 hover:border-brand-300"
@@ -307,7 +306,7 @@ export function OnboardingModal({ userId, userName }: OnboardingModalProps) {
                   <button
                     key={label}
                     onClick={() => { setValorMedioSel(valor); setValorMedioInput(""); setMostrarInputValor(false); }}
-                    className={`py-2.5 px-3 rounded-xl text-sm font-semibold border-2 transition-all ${
+                    className={`py-3 px-3 min-h-[44px] rounded-xl text-sm font-semibold border-2 transition-all ${
                       valorMedioSel === valor
                         ? "border-brand-500 bg-brand-50 text-brand-700"
                         : "border-gray-200 hover:border-brand-300 text-gray-700"
@@ -318,7 +317,7 @@ export function OnboardingModal({ userId, userName }: OnboardingModalProps) {
                 ))}
                 <button
                   onClick={() => { setValorMedioSel(null); setMostrarInputValor(true); }}
-                  className={`py-2.5 px-3 rounded-xl text-sm font-semibold border-2 transition-all ${
+                  className={`py-3 px-3 min-h-[44px] rounded-xl text-sm font-semibold border-2 transition-all ${
                     mostrarInputValor ? "border-brand-500 bg-brand-50 text-brand-700" : "border-dashed border-gray-300 text-gray-500 hover:border-brand-300"
                   }`}
                 >

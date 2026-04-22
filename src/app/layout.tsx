@@ -31,6 +31,12 @@ export const metadata: Metadata = {
   description:
     "Evite ultrapassar o limite de R$ 81.000 do MEI. Controle suas notas fiscais, receba alertas automáticos e veja seu faturamento em tempo real.",
   keywords: ["MEI", "microempreendedor", "notas fiscais", "faturamento", "controle", "limite MEI", "MEIguia"],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "MEIguia",
+  },
   openGraph: {
     title: "Portal MEIguia — Nunca mais ultrapasse o limite do MEI",
     description: "Controle de faturamento com alertas automáticos para Microempreendedores Individuais.",

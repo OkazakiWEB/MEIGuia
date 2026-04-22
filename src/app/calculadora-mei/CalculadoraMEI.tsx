@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { track } from "@vercel/analytics";
-
-const LIMITE_MEI  = 81_000;
+import { LIMITE_MEI } from "@/lib/constants";
 const ANO_ATUAL   = new Date().getFullYear();
 const MES_ATUAL   = new Date().getMonth() + 1; // 1-12
 const MESES_NOMES = [
@@ -139,6 +138,7 @@ export function CalculadoraMEI() {
 
       {/* ── Resultado ── */}
       {calculou && valorNumerico >= 0 && (
+
         <div className="space-y-5 pt-2 border-t border-gray-100">
 
           {/* Barra de progresso animada */}
@@ -216,6 +216,11 @@ export function CalculadoraMEI() {
               Sem cartão de crédito · Leva menos de 1 minuto
             </p>
           </div>
+
+          {/* Disclaimer */}
+          <p className="text-xs text-gray-400 text-center">
+            Este cálculo é informativo e considera apenas o valor informado acima. Consulte seu contador para decisões fiscais.
+          </p>
 
         </div>
       )}

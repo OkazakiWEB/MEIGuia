@@ -8,7 +8,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
  * Exporta as notas fiscais. Disponível apenas para usuários Pro.
  */
 export async function GET(request: NextRequest) {
-  const rl = checkRateLimit(getClientIp(request), { limit: 20, windowMs: 60_000, prefix: "export" });
+  const rl = await checkRateLimit(getClientIp(request), { limit: 20, windowMs: 60_000, prefix: "export" });
   if (!rl.success) {
     return NextResponse.json({ error: "Muitas requisições. Aguarde um momento." }, { status: 429 });
   }

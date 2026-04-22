@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createAdmin } from "@supabase/supabase-js";
-import { sendWelcomeEmail } from "@/lib/emails";
+import { sendD3SemNotaEmail } from "@/lib/emails";
 
 /**
- * GET /api/cron/boas-vindas
- * Roda diariamente. Envia e-mail de boas-vindas para usuários que se cadastraram
- * há 1 dia e ainda não receberam o e-mail de boas-vindas.
+ * GET /api/cron/d3-sem-nota
+ * Roda diariamente. Envia e-mail para usuários que:
+ * - Criaram conta há 3 dias (janela 71h-73h)
+ * - Nunca registraram nenhuma nota real
  */
 export async function GET(request: NextRequest) {
   if (request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -17,21 +18,21 @@ export async function GET(request: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // Janela: cadastros de ontem (entre 23h e 25h atrás para não perder ninguém)
   const agora = new Date();
-  const de = new Date(agora.getTime() - 25 * 60 * 60 * 1000).toISOString();
-  const ate = new Date(agora.getTime() - 23 * 60 * 60 * 1000).toISOString();
+  const de  = new Date(agora.getTime() - 73 * 60 * 60 * 1000).toISOString();
+  const ate = new Date(agora.getTime() - 71 * 60 * 60 * 1000).toISOString();
 
+  // Busca usuários cadastrados há ~3 dias com onboarding completo
   const { data: profiles, error } = await supabase
     .from("profiles")
-    .select("id, email, full_name, welcome_email_sent")
+    .select("id, email, full_name")
     .gte("created_at", de)
     .lte("created_at", ate)
-    .eq("welcome_email_sent", false)
+    .eq("onboarding_completed", true)
     .not("email", "is", null);
 
   if (error) {
-    console.error("[Cron/BoasVindas] Erro ao buscar perfis:", error);
+    console.error("[Cron/D3SemNota] Erro ao buscar perfis:", error);
     return NextResponse.json({ error: error.message ?? JSON.stringify(error) }, { status: 500 });
   }
 
@@ -40,12 +41,20 @@ export async function GET(request: NextRequest) {
 
   for (const p of profiles ?? []) {
     try {
-      await sendWelcomeEmail({ to: p.email!, nome: p.full_name ?? "MEI" });
-      await supabase.from("profiles").update({ welcome_email_sent: true }).eq("id", p.id);
+      // Verifica se tem alguma nota real (não estimativa)
+      const { count } = await supabase
+        .from("notas_fiscais")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", p.id)
+        .neq("descricao", "Faturamento acumulado antes do cadastro");
+
+      if ((count ?? 0) > 0) continue; // já tem notas, pula
+
+      await sendD3SemNotaEmail({ to: p.email!, nome: p.full_name ?? "MEI" });
       enviados++;
     } catch (err) {
       erros.push(`user=${p.id}: ${String(err)}`);
-      console.error("[Cron/BoasVindas]", err);
+      console.error("[Cron/D3SemNota]", err);
     }
   }
 

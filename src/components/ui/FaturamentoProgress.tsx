@@ -29,13 +29,13 @@ export function FaturamentoProgress({ totalFaturado }: FaturamentoProgressProps)
     <div>
       {/* Header */}
       <div className="flex justify-between items-end mb-2 gap-2">
-        <div className="min-w-0">
+        <div>
           <p className="text-sm text-gray-500">Faturamento {new Date().getFullYear()}</p>
-          <p className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{formatCurrency(totalFaturado)}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900 break-all">{formatCurrency(totalFaturado)}</p>
         </div>
         <div className="text-right flex-shrink-0">
           <p className="text-xs sm:text-sm text-gray-500">Limite MEI</p>
-          <p className="text-base sm:text-lg font-semibold text-gray-700">{formatCurrency(MEI_LIMITE)}</p>
+          <p className="text-sm sm:text-lg font-semibold text-gray-700">{formatCurrency(MEI_LIMITE)}</p>
         </div>
       </div>
 
@@ -50,7 +50,7 @@ export function FaturamentoProgress({ totalFaturado }: FaturamentoProgressProps)
       {/* Percentual e restante */}
       <div className="flex justify-between text-xs sm:text-sm gap-2">
         <span className="font-bold text-gray-700 flex-shrink-0">{percentual.toFixed(1)}% utilizado</span>
-        <span className="text-gray-500 truncate text-right">
+        <span className="text-gray-500 text-right">
           {totalFaturado > MEI_LIMITE
             ? `Excedido em ${formatCurrency(totalFaturado - MEI_LIMITE)}`
             : `Restam ${formatCurrency(restante)}`}

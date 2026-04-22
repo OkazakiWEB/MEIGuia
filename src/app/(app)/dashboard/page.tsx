@@ -12,6 +12,7 @@ import {
 import { TrendingUp, FileText, Calendar, Plus, Sparkles } from "lucide-react";
 import { NotasUsageBar } from "@/components/ui/NotasUsageBar";
 import type { NotaFiscal } from "@/types/database";
+import { LIMITE_MEI } from "@/lib/constants";
 
 const DESCRICAO_ESTIMATIVA = "Faturamento acumulado antes do cadastro";
 
@@ -109,6 +110,11 @@ export default async function DashboardPage() {
         <FaturamentoProgress totalFaturado={totalAno} />
       </div>
 
+      {/* ── Disclaimer de responsabilidade ── */}
+      <p className="text-xs text-gray-400 -mt-2 px-1">
+        Os valores exibidos refletem apenas as notas registradas aqui. Cadastre todas as notas recebidas para manter o controle correto.
+      </p>
+
       {/* ── Breakdown estimativa vs notas reais ── */}
       {temEstimativa && (
         <EstimativaCard
@@ -119,7 +125,7 @@ export default async function DashboardPage() {
       )}
 
       {/* ── Cards de métricas ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard
           label="Notas registradas"
           value={String(notasReaisLista.length)}
@@ -140,7 +146,7 @@ export default async function DashboardPage() {
         />
         <MetricCard
           label="Disponível"
-          value={formatCurrency(Math.max(81_000 - totalAno, 0))}
+          value={formatCurrency(Math.max(LIMITE_MEI - totalAno, 0))}
           icon={<span className="text-xl">💰</span>}
         />
       </div>
@@ -206,7 +212,7 @@ export default async function DashboardPage() {
               <div>
                 <p className="text-sm text-gray-500">Previsão anual (baseada na média)</p>
                 <p className="text-2xl font-bold text-gray-900">{formatCurrency(previsaoAnual)}</p>
-                {previsaoAnual > 81_000 && (
+                {previsaoAnual > LIMITE_MEI && (
                   <p className="text-xs text-red-600 font-medium mt-1">
                     ⚠️ Risco de ultrapassar o limite!
                   </p>
@@ -259,7 +265,7 @@ function MetricCard({ label, value, sublabel, icon }: {
         <p className="text-xs text-gray-500 font-medium leading-tight">{label}</p>
         <div className="flex-shrink-0 ml-1">{icon}</div>
       </div>
-      <p className="text-base sm:text-xl font-bold text-gray-900 truncate">{value}</p>
+      <p className="text-sm sm:text-xl font-bold text-gray-900 leading-tight">{value}</p>
       {sublabel && <p className="text-xs text-amber-600 mt-1">{sublabel}</p>}
     </div>
   );

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createAdmin } from "@supabase/supabase-js";
 import { sendEndOfMonthAlertEmail } from "@/lib/emails";
-
-const LIMITE_MEI = 81_000;
+import { LIMITE_MEI } from "@/lib/constants";
 
 /**
  * GET /api/cron/alerta-fim-mes

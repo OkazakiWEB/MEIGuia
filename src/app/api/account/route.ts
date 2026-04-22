@@ -11,7 +11,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
  */
 export async function DELETE(request: NextRequest) {
   // Rate limiting — máximo 3 tentativas por hora por IP
-  const rl = checkRateLimit(getClientIp(request), { limit: 3, windowMs: 60 * 60_000, prefix: "delete-account" });
+  const rl = await checkRateLimit(getClientIp(request), { limit: 3, windowMs: 60 * 60_000, prefix: "delete-account" });
   if (!rl.success) {
     return NextResponse.json({ error: "Muitas tentativas. Tente novamente em 1 hora." }, { status: 429 });
   }

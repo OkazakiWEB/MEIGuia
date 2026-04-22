@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/ui/Logo";
-import { ShieldCheck, TrendingUp, FileText, Calendar, Download, AlertCircle, Loader2 } from "lucide-react";
+import { ShieldCheck, TrendingUp, FileText, Calendar, AlertCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
-
-const LIMITE_MEI = 81_000;
+import { LIMITE_MEI } from "@/lib/constants";
 const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
 interface Nota {
@@ -128,14 +127,6 @@ export function ContadorView({ token }: { token: string }) {
               Modo Contador — somente leitura
             </span>
           </div>
-          <a
-            href={`/api/relatorio?ano=${ano}`}
-            className="btn-secondary text-xs py-2 px-3 flex items-center gap-1.5"
-            title="Baixar Relatório Anual PDF"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Baixar PDF</span>
-          </a>
         </div>
       </header>
 
@@ -292,8 +283,8 @@ export function ContadorView({ token }: { token: string }) {
         <div className="flex items-center gap-3 text-xs text-gray-400 bg-gray-100 rounded-xl px-4 py-3">
           <ShieldCheck className="w-4 h-4 flex-shrink-0 text-gray-300" />
           <span>
-            Acesso somente leitura. Dados fornecidos pelo titular via Portal MEIguia.
-            Gerado em {new Date().toLocaleDateString("pt-BR")}.
+            Acesso somente leitura. Dados fornecidos pelo próprio MEI via Portal MEIguia — refletem apenas o que foi registrado na plataforma.
+            Recomende ao cliente que mantenha os lançamentos atualizados. Gerado em {new Date().toLocaleDateString("pt-BR")}.
           </span>
         </div>
 

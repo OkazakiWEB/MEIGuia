@@ -406,3 +406,62 @@ export async function sendLimitAlertEmail(params: AlertEmailParams) {
     html,
   });
 }
+
+// ── D+3: Usuário sem nenhuma nota ──────────────────────────────────────────────
+export function sendD3SemNotaEmail({ to, nome }: { to: string; nome: string }) {
+  const html = baseLayout({
+    body: `
+      <p style="margin:0 0 16px;font-size:17px;font-weight:700;color:#111827;">Olá, ${nome}!</p>
+      <p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.6;">
+        Você criou sua conta no MEIguia há 3 dias, mas ainda não registrou nenhuma nota.
+      </p>
+      <p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.6;">
+        Sem registrar suas notas, você não tem como saber se está perto do limite de
+        <strong>R$ 81.000</strong> — e isso pode te pegar de surpresa no fim do ano.
+      </p>
+      <p style="margin:0 0 8px;font-size:14px;color:#6B7280;">Leva menos de 1 minuto. Só informe o valor e a data.</p>
+    `,
+    ctaHref: `${APP_URL}/notas/nova`,
+    ctaText: "Registrar minha primeira nota",
+    ctaColor: "#1A6B8A",
+  });
+
+  return getResend().emails.send({
+    from: FROM,
+    to,
+    subject: "Você ainda não registrou nenhuma nota no MEIguia",
+    html,
+  });
+}
+
+// ── D+7: Usuário sumiu após registrar notas ────────────────────────────────────
+export function sendD7InativoEmail({ to, nome, totalAno }: { to: string; nome: string; totalAno: number }) {
+  const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+
+  const html = baseLayout({
+    body: `
+      <p style="margin:0 0 16px;font-size:17px;font-weight:700;color:#111827;">Olá, ${nome}!</p>
+      <p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.6;">
+        Faz 7 dias que você não acessa o MEIguia. Seu painel pode estar desatualizado.
+      </p>
+      <div style="background:#F0F9FF;border:1px solid #BAE6FD;border-radius:12px;padding:16px 20px;margin:0 0 20px;">
+        <p style="margin:0 0 4px;font-size:12px;color:#0369A1;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Seu faturamento registrado</p>
+        <p style="margin:0;font-size:28px;font-weight:800;color:#0C4A6E;">${fmtBRL(totalAno)}</p>
+        <p style="margin:4px 0 0;font-size:12px;color:#0369A1;">em ${new Date().getFullYear()} — mas pode ter mais notas para registrar</p>
+      </div>
+      <p style="margin:0 0 8px;font-size:14px;color:#6B7280;">
+        Mantenha tudo atualizado para não ser surpreendido pelo limite anual do MEI.
+      </p>
+    `,
+    ctaHref: `${APP_URL}/dashboard`,
+    ctaText: "Ver meu dashboard",
+    ctaColor: "#1A6B8A",
+  });
+
+  return getResend().emails.send({
+    from: FROM,
+    to,
+    subject: "Seu painel MEIguia pode estar desatualizado",
+    html,
+  });
+}

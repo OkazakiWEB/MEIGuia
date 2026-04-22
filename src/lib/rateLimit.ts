@@ -1,23 +1,33 @@
 /**
- * Rate limiter simples em memória por IP.
- * Adequado para Vercel (serverless functions com isolamento por instância).
- * Uso: await rateLimit(request, { limit: 10, windowMs: 60_000 })
+ * Rate limiter via Upstash Redis (funciona em serverless/Vercel).
+ * Usa sliding window — persiste entre todas as instâncias.
  */
 
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
-const store = new Map<string, RateLimitEntry>();
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
 
-// Limpar entradas expiradas a cada 5 minutos para não vazar memória
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of store.entries()) {
-    if (entry.resetAt < now) store.delete(key);
+// Cache de instâncias por configuração (evita recriar a cada request)
+const limiters = new Map<string, Ratelimit>();
+
+function getLimiter(limit: number, windowMs: number, prefix: string): Ratelimit {
+  const key = `${prefix}:${limit}:${windowMs}`;
+  if (!limiters.has(key)) {
+    limiters.set(
+      key,
+      new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(limit, `${windowMs}ms`),
+        prefix: `rl:${prefix}`,
+      })
+    );
   }
-}, 5 * 60 * 1000);
+  return limiters.get(key)!;
+}
 
 export interface RateLimitOptions {
   /** Máximo de requisições permitidas na janela */
@@ -34,24 +44,17 @@ export interface RateLimitResult {
   resetAt: number;
 }
 
-export function checkRateLimit(
+export async function checkRateLimit(
   ip: string,
   { limit, windowMs = 60_000, prefix = "rl" }: RateLimitOptions
-): RateLimitResult {
-  const key = `${prefix}:${ip}`;
-  const now = Date.now();
-
-  let entry = store.get(key);
-
-  if (!entry || entry.resetAt < now) {
-    entry = { count: 1, resetAt: now + windowMs };
-    store.set(key, entry);
-    return { success: true, remaining: limit - 1, resetAt: entry.resetAt };
-  }
-
-  entry.count++;
-  const remaining = Math.max(limit - entry.count, 0);
-  return { success: entry.count <= limit, remaining, resetAt: entry.resetAt };
+): Promise<RateLimitResult> {
+  const limiter = getLimiter(limit, windowMs, prefix);
+  const result = await limiter.limit(ip);
+  return {
+    success: result.success,
+    remaining: result.remaining,
+    resetAt: result.reset,
+  };
 }
 
 /**

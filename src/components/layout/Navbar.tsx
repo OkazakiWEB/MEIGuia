@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LayoutDashboard, FileText, CreditCard, Settings, LogOut, Menu, X, Sparkles } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, LogOut, Menu, X, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { LogoInline } from "@/components/ui/Logo";
@@ -15,10 +15,8 @@ interface NavbarProps {
 }
 
 const navItems = [
-  { href: "/dashboard",     label: "Dashboard",     icon: LayoutDashboard },
-  { href: "/notas",         label: "Notas Fiscais",  icon: FileText },
-  { href: "/assinatura",    label: "Assinatura",     icon: CreditCard },
-  { href: "/configuracoes", label: "Configurações",  icon: Settings },
+  { href: "/dashboard", label: "Dashboard",    icon: LayoutDashboard },
+  { href: "/notas",     label: "Notas Fiscais", icon: FileText },
 ];
 
 export function Navbar({ profile, notasMes }: NavbarProps) {
@@ -72,7 +70,7 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
   return (
     <>
       {/* ── Sidebar desktop ── */}
-      <aside className="hidden lg:flex flex-col w-60 bg-petroleo-900 min-h-screen sticky top-0">
+      <aside className="hidden lg:flex flex-col w-60 bg-petroleo-900 h-screen sticky top-0 overflow-y-auto">
         {/* Logo */}
         <div className="p-6 border-b border-petroleo-700">
           <LogoInline href="/dashboard" className="[&_.font-portal]:text-petroleo-300 [&_.text-petroleo-700]:text-white [&_.text-agua-500]:text-agua-400" />
@@ -119,8 +117,14 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
         {/* User info + logout */}
         <div className="p-4 border-t border-petroleo-700">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-full bg-agua-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-              {profile?.full_name?.[0]?.toUpperCase() || "U"}
+            <div className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover rounded-full" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-agua-500 flex items-center justify-center text-white font-bold text-sm">
+                  {profile?.full_name?.[0]?.toUpperCase() || "U"}
+                </div>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">
@@ -128,6 +132,14 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
               </p>
               <p className="text-xs text-petroleo-300 truncate">{profile?.email}</p>
             </div>
+            <Link
+              href="/configuracoes"
+              onClick={() => setMobileOpen(false)}
+              className="flex-shrink-0 p-1.5 text-petroleo-400 hover:text-white transition-colors"
+              title="Configurações"
+            >
+              <Settings className="w-4 h-4" />
+            </Link>
           </div>
           <button
             onClick={handleLogout}
@@ -178,7 +190,7 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
                 className="flex items-center justify-center gap-2 w-full bg-agua-500 hover:bg-agua-600 text-white text-sm font-semibold py-3 rounded-lg transition-colors mt-2"
               >
                 <Sparkles className="w-4 h-4" />
-                Upgrade para Pro — R$ 14,90/mês
+                Upgrade para Pro — R$ 19,90/mês
               </Link>
             )}
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdmin } from "@supabase/supabase-js";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 /**
  * POST /api/contador/token
@@ -49,14 +50,21 @@ export async function DELETE(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   if (!body.id) return NextResponse.json({ error: "ID obrigatório" }, { status: 400 });
 
-  // RLS garante que só o dono pode revogar
-  const { error } = await supabase
+  // Usa admin para contornar RLS — a autenticação do dono já foi verificada acima
+  const admin = createAdmin(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { error, data } = await admin
     .from("contador_tokens")
     .update({ revoked: true })
     .eq("id", body.id)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .select("id");
 
   if (error) return NextResponse.json({ error: "Erro ao revogar token." }, { status: 500 });
+  if (!data?.length) return NextResponse.json({ error: "Token não encontrado." }, { status: 404 });
 
   return NextResponse.json({ ok: true });
 }
@@ -80,6 +88,12 @@ export async function GET() {
 
 // ── Lookup público por token (usado pela view do contador) ────────────────────
 export async function PATCH(request: NextRequest) {
+  // Rate limiting apertado: endpoint público que expõe dados financeiros
+  const rl = await checkRateLimit(getClientIp(request), { limit: 20, windowMs: 60 * 60 * 1000, prefix: "contador-lookup" });
+  if (!rl.success) {
+    return NextResponse.json({ error: "Muitas tentativas. Aguarde antes de tentar novamente." }, { status: 429 });
+  }
+
   const body = await request.json().catch(() => ({}));
   if (!body.token) return NextResponse.json({ error: "Token obrigatório" }, { status: 400 });
 

@@ -26,8 +26,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // @react-pdf/renderer é ESM — precisa ser transpilado pelo Next.js
-  transpilePackages: ["@react-pdf/renderer"],
+  // @react-pdf/renderer precisa ser tratado como externo no servidor (não bundlado)
+  serverExternalPackages: ["@react-pdf/renderer"],
   images: {
     remotePatterns: [{ protocol: "https", hostname: "lh3.googleusercontent.com" }],
   },

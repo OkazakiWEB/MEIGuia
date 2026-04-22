@@ -57,7 +57,7 @@ export default async function NotasPage({
             <>
               <a
                 href={`/api/relatorio?ano=${ano}`}
-                className="btn-secondary text-sm py-2 px-3 flex items-center gap-1.5 min-h-[40px] border-petroleo-300 text-petroleo-700 hover:bg-petroleo-50"
+                className="btn-secondary text-sm px-3 flex items-center gap-1.5 border-petroleo-300 text-petroleo-700 hover:bg-petroleo-50"
                 title={`Baixar Resumo Anual MEI ${ano} em PDF`}
               >
                 <FileBarChart2 className="w-4 h-4" />
@@ -65,14 +65,14 @@ export default async function NotasPage({
               </a>
               <a
                 href={`/api/notas/export?format=xlsx&ano=${ano}`}
-                className="btn-secondary text-sm py-2 px-3 flex items-center gap-1.5 min-h-[40px]"
+                className="btn-secondary text-sm px-3 flex items-center gap-1.5"
               >
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">Excel</span>
               </a>
               <a
                 href={`/api/notas/export?format=csv&ano=${ano}`}
-                className="btn-secondary text-sm py-2 px-3 flex items-center gap-1.5 min-h-[40px]"
+                className="btn-secondary text-sm px-3 flex items-center gap-1.5"
               >
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">CSV</span>
@@ -80,7 +80,7 @@ export default async function NotasPage({
             </>
           )}
           {!isPro && (
-            <Link href="/assinatura" className="btn-secondary text-sm py-2 px-3 flex items-center gap-1.5 text-gray-400 min-h-[40px]">
+            <Link href="/configuracoes" className="btn-secondary text-sm px-3 flex items-center gap-1.5 text-gray-400">
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Exportar</span>
             </Link>
@@ -88,8 +88,8 @@ export default async function NotasPage({
           <Link
             href="/notas/nova"
             className={atLimite
-              ? "btn-secondary text-sm py-2 px-4 opacity-60 pointer-events-none flex items-center gap-1.5 min-h-[40px]"
-              : "btn-primary text-sm py-2 px-4 flex items-center gap-1.5 min-h-[40px]"}
+              ? "btn-secondary text-sm px-4 opacity-60 pointer-events-none flex items-center gap-1.5"
+              : "btn-primary text-sm px-4 flex items-center gap-1.5"}
           >
             <Plus className="w-4 h-4" />
             Nova nota
@@ -106,7 +106,7 @@ export default async function NotasPage({
           <Link
             key={y}
             href={`/notas?ano=${y}`}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            className={`px-4 py-2.5 min-h-[44px] flex items-center rounded-full text-sm font-medium transition-colors ${
               y === ano
                 ? "bg-brand-600 text-white"
                 : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
@@ -129,7 +129,7 @@ export default async function NotasPage({
             <Link
               key={p}
               href={`/notas?ano=${ano}&page=${p}`}
-              className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+              className={`w-11 h-11 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
                 p === page
                   ? "bg-brand-600 text-white"
                   : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"

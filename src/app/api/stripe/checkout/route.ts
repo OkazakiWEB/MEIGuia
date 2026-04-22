@@ -11,7 +11,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
  */
 export async function POST(request: NextRequest) {
   // Rate limiting: 5 tentativas por minuto por IP
-  const rl = checkRateLimit(getClientIp(request), { limit: 5, windowMs: 60_000, prefix: "checkout" });
+  const rl = await checkRateLimit(getClientIp(request), { limit: 5, windowMs: 60_000, prefix: "checkout" });
   if (!rl.success) {
     return NextResponse.json(
       { error: "Muitas tentativas. Aguarde um momento e tente novamente." },

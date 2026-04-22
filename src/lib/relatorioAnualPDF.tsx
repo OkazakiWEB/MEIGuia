@@ -1,5 +1,5 @@
 import {
-  Document, Page, Text, View, StyleSheet, Font,
+  Document, Page, Text, View, StyleSheet,
 } from "@react-pdf/renderer";
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
@@ -32,11 +32,6 @@ function fmtBRL(v: number) {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency", currency: "BRL", maximumFractionDigits: 2,
   }).format(v);
-}
-
-function fmtData(iso: string) {
-  const [, m, d] = iso.split("-");
-  return `${d}/${m}`;
 }
 
 function fmtDataLonga(iso: string) {
@@ -450,7 +445,7 @@ export function RelatorioAnualPDF({ d }: { d: RelatorioData }) {
 
           {/* Aviso para contador */}
           <View style={s.avisoBox}>
-            <Text style={s.avisoTitle}>ℹ️  Para o contador</Text>
+            <Text style={s.avisoTitle}>Para o contador</Text>
             <Text style={s.avisoText}>
               Este relatório foi gerado automaticamente pelo Portal MEIguia com base nas notas registradas
               pelo titular. Os valores devem ser conferidos com as notas fiscais emitidas no portal da
@@ -511,8 +506,8 @@ export function RelatorioAnualPDF({ d }: { d: RelatorioData }) {
           </Text>
           {percentualUsado >= 80 && (
             <Text style={[s.paragraph, { color: C.orange, fontFamily: "Helvetica-Bold" }]}>
-              ⚠️  Atenção: o titular atingiu {percentualUsado.toFixed(0)}% do limite anual.
-              Recomenda-se análise da viabilidade de continuidade como MEI.
+              Atencao: o titular atingiu {percentualUsado.toFixed(0)}% do limite anual.
+              Recomenda-se analise da viabilidade de continuidade como MEI.
             </Text>
           )}
 

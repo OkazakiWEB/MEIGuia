@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { sendLimitAlertEmail } from "@/lib/emails";
+import { LIMITE_MEI } from "@/lib/constants";
 
 /**
  * GET /api/cron/alertas
@@ -23,7 +24,6 @@ export async function GET(request: NextRequest) {
   );
 
   const anoAtual = new Date().getFullYear();
-  const LIMITE_MEI = 81_000;
 
   try {
     // Buscar todos os usuários com plano ativo (free ou pro) e e-mail confirmado
@@ -110,6 +110,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     console.error("[Cron/Alertas] Erro geral:", err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    const msg = err instanceof Error ? err.message : JSON.stringify(err);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

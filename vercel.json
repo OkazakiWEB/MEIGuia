@@ -19,6 +19,14 @@
     {
       "path": "/api/cron/alerta-fim-mes",
       "schedule": "0 10 28 * *"
+    },
+    {
+      "path": "/api/cron/d3-sem-nota",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/d7-inativo",
+      "schedule": "0 15 * * *"
     }
   ]
 }

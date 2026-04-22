@@ -4,8 +4,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { RelatorioAnualPDF, type RelatorioData } from "@/lib/relatorioAnualPDF";
 import React from "react";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
-
-const LIMITE_MEI = 81_000;
+import { LIMITE_MEI } from "@/lib/constants";
 
 function formatarDataHora(d: Date) {
   return d.toLocaleDateString("pt-BR", {
@@ -21,7 +20,7 @@ function formatarDataHora(d: Date) {
  */
 export async function GET(request: NextRequest) {
   // Rate limiting: 10 gerações por hora por IP
-  const rl = checkRateLimit(getClientIp(request), { limit: 10, windowMs: 60 * 60 * 1000, prefix: "relatorio" });
+  const rl = await checkRateLimit(getClientIp(request), { limit: 10, windowMs: 60 * 60 * 1000, prefix: "relatorio" });
   if (!rl.success) {
     return NextResponse.json({ error: "Muitas tentativas. Aguarde alguns minutos." }, { status: 429 });
   }
@@ -99,7 +98,8 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (err) {
-    console.error("[Relatorio] Erro ao renderizar PDF:", err);
-    return NextResponse.json({ error: "Erro ao gerar PDF. Tente novamente." }, { status: 500 });
+    const msg = err instanceof Error ? err.message : JSON.stringify(err);
+    console.error("[Relatorio] Erro ao renderizar PDF:", msg);
+    return NextResponse.json({ error: "Erro ao gerar PDF. Tente novamente.", detail: msg }, { status: 500 });
   }
 }

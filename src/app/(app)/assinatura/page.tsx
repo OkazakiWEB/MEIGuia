@@ -171,10 +171,11 @@ function AssinaturaContent() {
   }
 
   // ── Preços ────────────────────────────────────────────────────────────────
-  const precoMensal  = 14.90;
-  const precoAnual   = 9.90;   // por mês no plano anual (R$ 118,80/ano)
-  const economiaPct  = Math.round((1 - precoAnual / precoMensal) * 100);
-  const precoExibido = interval === "annual" ? precoAnual : precoMensal;
+  const precoMensal      = 19.90;
+  const precoAnualTotal  = 319.90;                        // cobrado uma vez por ano
+  const precoAnualMes    = precoAnualTotal / 12;          // ~26,66/mês
+  const economiaPct      = Math.round((1 - precoAnualMes / precoMensal) * 100);
+  const precoExibido     = interval === "annual" ? precoAnualMes : precoMensal;
 
   // ── Tela de conversão ─────────────────────────────────────────────────────
   return (
@@ -232,7 +233,7 @@ function AssinaturaContent() {
         </div>
         {interval === "annual" && (
           <p className="text-xs text-green-600 font-semibold">
-            Você economiza R$&nbsp;{((precoMensal - precoAnual) * 12).toFixed(0).replace(".", ",")}&nbsp;por ano
+            Você economiza R$ {((precoMensal * 12) - precoAnualTotal).toFixed(0).replace(".", ",")} por ano
           </p>
         )}
       </div>
@@ -290,8 +291,8 @@ function AssinaturaContent() {
           </div>
           <p className="text-xs text-brand-500 font-medium mb-4 h-4">
             {interval === "annual"
-              ? `Cobrado R$&nbsp;${(precoAnual * 12).toFixed(2).replace(".", ",")} por ano`
-              : "Menos de R$&nbsp;0,50 por dia"}
+              ? `Cobrado R$ ${precoAnualTotal.toFixed(2).replace(".", ",")} por ano`
+              : "Menos de R$ 0,70 por dia"}
           </p>
 
           <ul className="space-y-2.5 flex-1">
@@ -417,12 +418,12 @@ function AssinaturaContent() {
         >
           {checkoutLoading
             ? <><Loader2 className="w-5 h-5 animate-spin" /> Aguarde...</>
-            : <><ShieldCheck className="w-5 h-5" /> Proteger meu MEI por R$&nbsp;{precoExibido.toFixed(2).replace(".", ",")}/mês</>}
+            : <><ShieldCheck className="w-5 h-5" /> Proteger meu MEI por R$ {precoExibido.toFixed(2).replace(".", ",")}/mês</>}
         </button>
         <p className="text-xs text-gray-400">
           {interval === "annual"
-            ? `R$&nbsp;${(precoAnual * 12).toFixed(2).replace(".", ",")} cobrado uma vez por ano · Cancele quando quiser`
-            : "R$&nbsp;14,90/mês · Cancele quando quiser · Sem fidelidade"}
+            ? `R$ ${precoAnualTotal.toFixed(2).replace(".", ",")} cobrado uma vez por ano · Cancele quando quiser`
+            : "R$ 19,90/mês · Cancele quando quiser · Sem fidelidade"}
         </p>
       </div>
 
