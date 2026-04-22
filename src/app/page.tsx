@@ -124,7 +124,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Logo href="/" />
           <div className="flex items-center gap-3">
-            <Link href="/login" className="btn-secondary text-sm py-2 px-4 hidden sm:inline-flex">
+            <Link href="/login" className="btn-secondary text-sm py-2 px-4">
               Entrar
             </Link>
             <Link href="/cadastro" className="btn-primary text-sm py-2 px-4">
