@@ -182,6 +182,21 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
               <NavItem key={item.href} {...item} />
             ))}
 
+            {/* Configurações */}
+            <Link
+              href="/configuracoes"
+              onClick={() => setMobileOpen(false)}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                pathname.startsWith("/configuracoes")
+                  ? "bg-petroleo-600 text-white"
+                  : "text-petroleo-200 hover:bg-petroleo-700 hover:text-white"
+              )}
+            >
+              <Settings className="w-4 h-4 flex-shrink-0" />
+              Configurações
+            </Link>
+
             {/* Banner upgrade mobile */}
             {isFree && notasMes >= 6 && (
               <Link
