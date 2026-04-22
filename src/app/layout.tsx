@@ -48,8 +48,17 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`${montserrat.variable} ${raleway.variable} ${inter.variable}`}>
+      <head>
+        <meta name="theme-color" content="#1A6B8A" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+      </head>
       <body className="font-sans bg-gray-50 text-gray-900 antialiased">
         {children}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }`,
+          }}
+        />
         <Toaster
           position="top-right"
           toastOptions={{
