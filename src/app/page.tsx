@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import styles from "./page.module.css";
+import { LogoInline } from "@/components/ui/Logo";
 
 /* ─── FAQ data ─── */
 const faqs = [
@@ -229,10 +229,7 @@ export default function HomePage() {
 
       {/* ══ NAV ══ */}
       <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ""}`}>
-        <Link href="/" className={styles.logo}>
-          <span className={styles.logoMark} />
-          MEIGuia
-        </Link>
+        <LogoInline href="/" className={styles.navLogo} />
         <div className={styles.navLinks}>
           <a href="#problema">Por que MEIGuia</a>
           <a href="#como-funciona">Como funciona</a>
@@ -241,7 +238,7 @@ export default function HomePage() {
         </div>
         <div className={styles.navCta}>
           <Link href="/login" className={`${styles.btn} ${styles.btnGhost}`}>Entrar</Link>
-          <Link href="/cadastro" className={`${styles.btn} ${styles.btnGreen}`}>
+          <Link href="/landing" className={`${styles.btn} ${styles.btnNavCta}`}>
             Começar grátis <span className={styles.btnArrow}>→</span>
           </Link>
         </div>
@@ -393,25 +390,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ══ SOLUÇÃO (com imagem) ══ */}
+      {/* ══ SOLUÇÃO ══ */}
       <section className={styles.solucaoSection}>
         <div className={styles.sectionInner}>
           <div className={styles.solucaoGrid}>
-            <div className={styles.solucaoImg} data-reveal>
-              <Image
-                src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80"
-                alt="Empreendedora brasileira no seu negócio"
-                fill
-                style={{ objectFit: "cover", objectPosition: "center top" }}
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-              <div className={styles.solucaoImgBadge}>
-                <span className={styles.solucaoImgBadgeDot} />
-                CNPJ monitorado 24h
-              </div>
-            </div>
-
-            <div className={styles.solucaoContent} data-reveal>
+            <div className={styles.solucaoLeft} data-reveal>
               <div className={styles.sectionEyebrow}>
                 <span className={styles.sectionEyebrowDash} />
                 <span>A solução</span>
@@ -421,27 +404,28 @@ export default function HomePage() {
                 É um <em>radar</em>.
               </h2>
               <p className={styles.solucaoDesc}>
-                O MEIGuia roda no background, olhando seu faturamento, seus prazos e sua documentação, e <strong>só te chama quando precisa</strong>. É o oposto do contador tradicional: linguagem simples, WhatsApp e um time humano que entende que você não abriu um MEI para virar especialista em Simples Nacional.
+                O MEIGuia roda no background, olhando seu faturamento, prazos e documentação, e <strong>só te chama quando precisa</strong>. Linguagem simples, WhatsApp e um time humano — sem você precisar virar especialista em Simples Nacional.
               </p>
+              <Link href="/landing" className={`${styles.btn} ${styles.btnGreen} ${styles.btnLg}`}>
+                Conhecer os planos <span className={styles.btnArrow}>→</span>
+              </Link>
+            </div>
 
+            <div className={styles.solucaoRight} data-reveal>
               <ul className={styles.solucaoList}>
                 {[
-                  "Monitora limite de faturamento em tempo real",
-                  "Gera e paga DAS automaticamente",
-                  "Avisa antes de qualquer prazo vencer",
-                  "Contador humano disponível no WhatsApp",
-                  "Regulariza CNPJ pendente de ponta a ponta",
-                ].map((item) => (
-                  <li key={item} className={styles.solucaoItem}>
-                    <span className={styles.solucaoCheck}>✓</span>
-                    {item}
+                  { icon: "📡", text: "Monitora limite de faturamento em tempo real" },
+                  { icon: "💳", text: "Gera e paga DAS automaticamente todo mês" },
+                  { icon: "🔔", text: "Avisa antes de qualquer prazo vencer" },
+                  { icon: "💬", text: "Contador humano disponível no WhatsApp" },
+                  { icon: "✅", text: "Regulariza CNPJ pendente de ponta a ponta" },
+                ].map(({ icon, text }) => (
+                  <li key={text} className={styles.solucaoItem}>
+                    <span className={styles.solucaoItemIcon}>{icon}</span>
+                    <span>{text}</span>
                   </li>
                 ))}
               </ul>
-
-              <Link href="/cadastro" className={`${styles.btn} ${styles.btnGreen} ${styles.btnLg}`}>
-                Começar agora — é grátis <span className={styles.btnArrow}>→</span>
-              </Link>
             </div>
           </div>
         </div>
@@ -473,60 +457,40 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ══ COMO FUNCIONA (com imagem) ══ */}
+      {/* ══ COMO FUNCIONA ══ */}
       <section id="como-funciona" className={styles.passosSection}>
         <div className={styles.sectionInner}>
-          <div className={styles.passosGrid}>
-            <div className={styles.passosContent}>
-              <div className={styles.sectionEyebrow} data-reveal>
-                <span className={styles.sectionEyebrowDash} />
-                <span>Como funciona</span>
-              </div>
-              <h2 className={styles.sectionTitle} data-reveal>
-                Proteja seu CNPJ<br />
-                em <em>3 passos</em>.
-              </h2>
-
-              <div className={styles.passosList} data-reveal-stagger>
-                {passos.map(({ n, title, desc }) => (
-                  <div key={n} className={styles.passoItem}>
-                    <div className={styles.passoNum}>{n}</div>
-                    <div>
-                      <h3 className={styles.passoTitle}>{title}</h3>
-                      <p className={styles.passoDesc}>{desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div data-reveal>
-                <Link href="/cadastro" className={`${styles.btn} ${styles.btnGreen} ${styles.btnLg}`} style={{ marginTop: "2rem" }}>
-                  Criar conta grátis <span className={styles.btnArrow}>→</span>
-                </Link>
-                <p style={{ marginTop: "0.75rem", fontSize: "13px", color: "rgba(10,37,64,.5)" }}>
-                  Sem cartão de crédito · Leva menos de 1 minuto
-                </p>
-              </div>
+          <div className={`${styles.sectionHeader} ${styles.sectionHeaderCenter}`} data-reveal>
+            <div className={styles.sectionEyebrow} style={{ justifyContent: "center" }}>
+              <span className={styles.sectionEyebrowDash} />
+              <span>Como funciona</span>
+              <span className={styles.sectionEyebrowDash} />
             </div>
+            <h2 className={styles.sectionTitle} style={{ textAlign: "center", margin: "0 auto 12px" }}>
+              Proteja seu CNPJ em <em>3 passos</em>.
+            </h2>
+            <p className={styles.sectionLead} style={{ textAlign: "center", margin: "0 auto" }}>
+              Sem burocracia, sem planilha, sem contador tradicional.
+            </p>
+          </div>
 
-            <div className={styles.passosImgWrap} data-reveal>
-              <Image
-                src="https://images.unsplash.com/photo-1664575602554-2087b04935a5?w=800&q=80"
-                alt="Empreendedor usando celular para controlar o negócio"
-                fill
-                style={{ objectFit: "cover", objectPosition: "center" }}
-                sizes="(max-width: 1024px) 100vw, 45vw"
-              />
-              <div className={styles.passosImgOverlay}>
-                <div className={styles.passosImgCard}>
-                  <div className={styles.passosImgCardDot} />
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: "14px", color: "var(--ink)" }}>Limite seguro</div>
-                    <div style={{ fontSize: "12px", color: "rgba(10,37,64,.6)", marginTop: "2px" }}>R$ 22.580 ainda disponíveis</div>
-                  </div>
-                </div>
+          <div className={styles.passosCards} data-reveal-stagger>
+            {passos.map(({ n, title, desc }) => (
+              <div key={n} className={styles.passoCard}>
+                <div className={styles.passoCardNum}>{n}</div>
+                <h3 className={styles.passoCardTitle}>{title}</h3>
+                <p className={styles.passoCardDesc}>{desc}</p>
               </div>
-            </div>
+            ))}
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: "3rem" }} data-reveal>
+            <Link href="/landing" className={`${styles.btn} ${styles.btnGreen} ${styles.btnLg}`}>
+              Começar agora <span className={styles.btnArrow}>→</span>
+            </Link>
+            <p style={{ marginTop: "0.75rem", fontSize: "13px", color: "rgba(10,37,64,.5)" }}>
+              Grátis para começar · Sem cartão de crédito
+            </p>
           </div>
         </div>
       </section>
@@ -599,15 +563,18 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              {/* Imagem no aside do FAQ */}
-              <div className={styles.faqAsideImg}>
-                <Image
-                  src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&q=80"
-                  alt="Contador atendendo cliente"
-                  fill
-                  style={{ objectFit: "cover", objectPosition: "center top" }}
-                  sizes="400px"
-                />
+              {/* Indicadores de confiança */}
+              <div className={styles.faqTrust}>
+                {[
+                  { num: "+12.000", label: "CNPJs protegidos" },
+                  { num: "CRC ativo", label: "Contador responsável" },
+                  { num: "LGPD", label: "Dados protegidos" },
+                ].map(({ num, label }) => (
+                  <div key={label} className={styles.faqTrustItem}>
+                    <span className={styles.faqTrustNum}>{num}</span>
+                    <span className={styles.faqTrustLabel}>{label}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -658,10 +625,7 @@ export default function HomePage() {
         <div className={styles.sectionInner}>
           <div className={styles.footGrid}>
             <div className={styles.footBrand}>
-              <Link href="/" className={styles.logo} style={{ color: "var(--cream)" }}>
-                <span className={styles.logoMark} style={{ background: "rgba(245,241,234,.15)" }} />
-                MEIGuia
-              </Link>
+              <LogoInline href="/" className={styles.footLogo} />
               <p className={styles.footTag}>
                 Proteção inteligente do seu CNPJ. Radar ativo, contador humano, zero surpresas.
               </p>
