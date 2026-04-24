@@ -67,7 +67,15 @@ function AssinaturaContent() {
 
   useEffect(() => {
     loadProfile();
-    if (success)  toast.success("🎉 Plano Pro ativado! Seu MEI está protegido.");
+    if (success) {
+      toast.success("🎉 Plano Pro ativado! Seu MEI está protegido.");
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        (window as any).gtag("event", "purchase", { currency: "BRL", value: 19.90, transaction_id: Date.now().toString() });
+      }
+      if (typeof window !== "undefined" && (window as any).fbq) {
+        (window as any).fbq("track", "Purchase", { currency: "BRL", value: 19.90 });
+      }
+    }
     if (canceled) toast.error("Assinatura cancelada. Você pode tentar novamente a qualquer hora.");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [success, canceled]);
@@ -87,6 +95,18 @@ function AssinaturaContent() {
 
   async function handleCheckout() {
     track("checkout_started", { plano: "pro", interval });
+    if (typeof window !== "undefined" && (window as any).gtag) {
+      (window as any).gtag("event", "begin_checkout", {
+        currency: "BRL",
+        value: interval === "annual" ? 191.90 : 19.90,
+      });
+    }
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "InitiateCheckout", {
+        currency: "BRL",
+        value: interval === "annual" ? 191.90 : 19.90,
+      });
+    }
     setCheckoutLoading(true);
     try {
       const res = await fetch("/api/stripe/checkout", {

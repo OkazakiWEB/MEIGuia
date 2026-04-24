@@ -40,6 +40,14 @@ function CadastroForm() {
     // Se a sessão foi criada imediatamente (confirmação de e-mail desabilitada)
     if (data.session) {
       track("signup_completed", { method: "email", plan: plan || "free" });
+      // GA4
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        (window as any).gtag("event", "sign_up", { method: "email" });
+      }
+      // Meta Pixel
+      if (typeof window !== "undefined" && (window as any).fbq) {
+        (window as any).fbq("track", "CompleteRegistration", { content_name: plan || "free" });
+      }
       toast.success("Conta criada! Bem-vindo ao Portal MEIguia 🎉");
       router.push(plan === "pro" ? "/assinatura?upgrade=true" : "/dashboard");
       router.refresh();
@@ -53,6 +61,9 @@ function CadastroForm() {
 
   async function handleGoogleSignup() {
     track("signup_started", { method: "google" });
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "InitiateCheckout", { content_name: "google_signup" });
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
