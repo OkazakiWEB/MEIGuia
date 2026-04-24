@@ -666,6 +666,122 @@
   color: rgba(245,241,234,.4); flex-wrap: wrap; gap: 16px;
 }
 
+/* ── Hero extras ── */
+.btnLg { padding: 16px 28px !important; font-size: 15px !important; }
+.heroDisclaimer { font-size: 12px; color: rgba(10,37,64,.45); margin-top: 14px; letter-spacing: .01em; }
+
+/* ── Section header ── */
+.sectionHeader { margin-bottom: 60px; }
+.sectionHeaderCenter { text-align: center; display: flex; flex-direction: column; align-items: center; }
+
+/* ── PROBLEMA ── */
+.problemaSection { background: var(--paper-2); padding: 120px 40px; }
+.problemaGrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+.problemaCard {
+  background: var(--paper); border: 1px solid var(--line);
+  border-radius: 20px; padding: 36px;
+  display: flex; flex-direction: column; gap: 16px;
+  transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s;
+}
+.problemaCard:hover { transform: translateY(-4px); box-shadow: 0 20px 50px -20px rgba(10,37,64,.2); }
+.problemaEmoji { font-size: 36px; line-height: 1; }
+.problemaTitle { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing: -.015em; color: var(--ink); margin: 0; }
+.problemaDesc { font-size: 14px; line-height: 1.6; color: rgba(10,37,64,.7); margin: 0; flex: 1; }
+.problemaFix {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px; font-weight: 600; color: var(--green-deep);
+  border-top: 1px solid var(--line); padding-top: 16px;
+}
+.problemaFixCheck {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(0,165,99,.12); color: var(--green-deep);
+  display: grid; place-items: center; font-size: 10px; flex-shrink: 0; margin-top: 1px;
+}
+
+/* ── SOLUÇÃO ── */
+.solucaoSection { background: var(--paper); padding: 120px 40px; }
+.solucaoGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.solucaoImg {
+  position: relative; border-radius: 20px; overflow: hidden;
+  aspect-ratio: 4/5;
+  box-shadow: 0 40px 80px -30px rgba(10,37,64,.35);
+}
+.solucaoImgBadge {
+  position: absolute; bottom: 20px; left: 20px;
+  background: var(--ink); color: var(--cream);
+  padding: 10px 16px; border-radius: 100px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+  display: flex; align-items: center; gap: 8px;
+}
+.solucaoImgBadgeDot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+.solucaoContent { display: flex; flex-direction: column; gap: 0; }
+.solucaoTitle {
+  font-family: var(--serif); font-weight: 400;
+  font-size: clamp(32px, 4vw, 56px); line-height: 1.05;
+  letter-spacing: -.025em; margin: 0 0 20px; color: var(--ink);
+}
+.solucaoTitle em { font-style: italic; color: var(--green-deep); font-variation-settings: "SOFT" 50; }
+.solucaoDesc { font-size: 16px; line-height: 1.65; color: rgba(10,37,64,.72); margin: 0 0 28px; }
+.solucaoDesc strong { color: var(--ink); font-weight: 600; }
+.solucaoList { list-style: none; padding: 0; margin: 0 0 32px; display: flex; flex-direction: column; gap: 12px; }
+.solucaoItem { display: flex; align-items: center; gap: 12px; font-size: 15px; color: rgba(10,37,64,.85); }
+.solucaoCheck { width: 20px; height: 20px; border-radius: 50%; background: rgba(0,212,126,.15); color: var(--green-deep); display: grid; place-items: center; font-size: 11px; flex-shrink: 0; font-weight: 700; }
+
+/* ── BENEFÍCIOS ── */
+.beneficiosSection { background: var(--ink); color: var(--cream); padding: 120px 40px; }
+.beneficiosSection .sectionEyebrow { color: rgba(245,241,234,.55); }
+.beneficiosSection .sectionEyebrowDash { background: var(--cream); opacity: .4; }
+.beneficiosSection .sectionTitle { color: var(--cream); }
+.beneficiosSection .sectionTitle em { color: var(--green); }
+.beneficiosGrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: rgba(245,241,234,.08); border: 1px solid rgba(245,241,234,.08); border-radius: 20px; overflow: hidden; margin-top: 0; }
+.beneficioCard { background: var(--ink); padding: 40px 32px; transition: background .3s; }
+.beneficioCard:hover { background: var(--ink-soft); }
+.beneficioIcon { width: 52px; height: 52px; border: 1px solid rgba(245,241,234,.15); border-radius: 14px; display: grid; place-items: center; margin-bottom: 20px; color: var(--green); }
+.beneficioIcon svg { width: 24px; height: 24px; }
+.beneficioTitle { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing: -.015em; color: var(--cream); margin: 0 0 10px; }
+.beneficioDesc { font-size: 14px; line-height: 1.6; color: rgba(245,241,234,.6); margin: 0; }
+
+/* ── COMO FUNCIONA / PASSOS ── */
+.passosSection { background: var(--cream); padding: 120px 40px; }
+.passosGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.passosContent { display: flex; flex-direction: column; }
+.passosList { display: flex; flex-direction: column; gap: 0; margin: 40px 0; }
+.passoItem { display: flex; align-items: flex-start; gap: 20px; padding: 24px 0; border-bottom: 1px solid rgba(10,37,64,.1); }
+.passoItem:first-child { border-top: 1px solid rgba(10,37,64,.1); }
+.passoNum { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; color: var(--green-deep); font-weight: 600; min-width: 28px; padding-top: 2px; }
+.passoTitle { font-family: var(--serif); font-size: 20px; font-weight: 500; letter-spacing: -.01em; color: var(--ink); margin: 0 0 6px; }
+.passoDesc { font-size: 14px; line-height: 1.55; color: rgba(10,37,64,.65); margin: 0; }
+.passosImgWrap {
+  position: relative; border-radius: 20px; overflow: hidden;
+  aspect-ratio: 3/4;
+  box-shadow: 0 40px 80px -30px rgba(10,37,64,.3);
+}
+.passosImgOverlay { position: absolute; bottom: 20px; left: 20px; right: 20px; }
+.passosImgCard {
+  background: white; border-radius: 12px; padding: 14px 18px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 8px 24px rgba(10,37,64,.2);
+}
+.passosImgCardDot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; flex-shrink: 0; }
+
+/* ── STATS BAR ── */
+.statsBar {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 1px; background: var(--line);
+  border: 1px solid var(--line); border-radius: 16px;
+  overflow: hidden; margin-bottom: 80px;
+}
+.statItem { background: var(--cream); padding: 28px 24px; display: flex; flex-direction: column; gap: 6px; }
+.statItemNum { font-family: var(--serif); font-size: 32px; font-weight: 500; letter-spacing: -.025em; color: var(--ink); line-height: 1; }
+.statItemLabel { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: rgba(10,37,64,.5); }
+
+/* ── FAQ aside image ── */
+.faqAsideImg {
+  position: relative; border-radius: 12px; overflow: hidden;
+  height: 220px; margin-top: 20px;
+  box-shadow: 0 20px 40px -15px rgba(10,37,64,.3);
+}
+
 /* ── Aliases / missing classes ── */
 .lead { font-size: 19px; line-height: 1.55; max-width: 540px; color: rgba(10,37,64,.72); margin: 0 0 40px; }
 .sectionPaper { background: var(--paper); }
@@ -697,6 +813,23 @@
 @media (max-width: 640px) { .mobileCta { display: flex; } }
 
 /* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .problemaGrid { grid-template-columns: 1fr; }
+  .solucaoGrid { grid-template-columns: 1fr; }
+  .solucaoImg { aspect-ratio: 16/9; }
+  .passosGrid { grid-template-columns: 1fr; }
+  .passosImgWrap { aspect-ratio: 16/9; }
+  .beneficiosGrid { grid-template-columns: 1fr 1fr; }
+  .statsBar { grid-template-columns: 1fr 1fr; }
+  .problemaSection, .solucaoSection, .beneficiosSection, .passosSection { padding: 80px 24px; }
+  .faqSection { padding: 80px 24px; }
+  .ctaSection { padding: 80px 24px; }
+}
+@media (max-width: 640px) {
+  .beneficiosGrid { grid-template-columns: 1fr; }
+  .statsBar { grid-template-columns: 1fr 1fr; }
+  .problemaGrid { gap: 16px; }
+}
 @media (max-width: 1024px) {
   .hero { grid-template-columns: 1fr; padding: 120px 24px 60px; }
   .section, .faq, .diferenciais { padding: 100px 24px; }

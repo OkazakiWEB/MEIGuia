@@ -2,48 +2,148 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import styles from "./page.module.css";
 
+/* ─── FAQ data ─── */
 const faqs = [
   {
     q: 'Como funciona o "radar" do CNPJ?',
-    a: "O MEIGuia acompanha seu faturamento, prazos de DAS, declarações anuais e pendências cadastrais. Sempre que algo exige sua atenção — ou está prestes a exigir — você recebe um alerta direto no WhatsApp.",
+    a: "O MEIGuia acompanha seu faturamento, prazos de DAS, declarações anuais e pendências. Sempre que algo exige atenção — ou está prestes a exigir — você recebe um alerta no WhatsApp.",
   },
   {
     q: "Preciso trocar de contador?",
-    a: "Não. O MEIGuia funciona sozinho ou complementando seu contador atual. Se preferir, a gente assume a contabilidade integralmente. Se preferir manter o seu, a gente gera resumos mensais automáticos que facilitam o trabalho dele.",
+    a: "Não. O MEIGuia funciona sozinho ou complementando seu contador atual. Se preferir, assumimos a contabilidade integralmente e geramos resumos mensais automáticos.",
   },
   {
-    q: "E se eu já estiver com o CNPJ pendente?",
-    a: "A gente faz o diagnóstico gratuito em 24h, te apresenta o que precisa ser resolvido em ordem de prioridade, e executa a regularização — incluindo parcelamento de DAS em atraso e declarações retroativas.",
+    q: "E se meu CNPJ já estiver pendente?",
+    a: "Fazemos diagnóstico gratuito em 24h, apresentamos o que resolver em ordem de prioridade e executamos a regularização — incluindo parcelamento de DAS atrasado e declarações retroativas.",
   },
   {
     q: "Vocês pagam o DAS automaticamente?",
-    a: "Se você autorizar, sim. O MEIGuia gera o DAS, te avisa com antecedência e, com sua autorização prévia, executa o pagamento via Pix no vencimento. Você pode desativar a qualquer momento.",
+    a: "Sim, se você autorizar. O MEIGuia gera o DAS, avisa com antecedência e executa o pagamento via Pix no vencimento. Pode desativar a qualquer momento.",
   },
   {
     q: "Como sei que vocês são confiáveis?",
-    a: "Temos contador tecnicamente responsável registrado no CRC, mais de 12 mil CNPJs ativos sob monitoramento, e parceria direta com bancos e instituições reguladoras. Pode pedir nosso certificado técnico a qualquer momento.",
+    a: "Temos contador registrado no CRC, mais de 12 mil CNPJs sob monitoramento e parceria com bancos e órgãos reguladores. Pode pedir nosso certificado técnico a qualquer momento.",
   },
   {
-    q: "E meus dados? Estão seguros?",
-    a: "Seguimos a LGPD à risca. Seus dados são criptografados, nunca são vendidos, e você pode solicitar exclusão completa a qualquer momento. Auditoria independente anual disponível sob solicitação.",
+    q: "Meus dados estão seguros?",
+    a: "Seguimos a LGPD à risca. Dados criptografados, nunca vendidos, e você pode solicitar exclusão completa a qualquer momento.",
   },
 ];
 
+/* ─── Depoimentos ─── */
 const depoRow1 = [
-  { text: "Eu descobri que meu CNPJ estava pendente só na hora de tirar um financiamento. Troquei pelo MEIGuia e nunca mais tive surpresa. Sério.", name: "Mariana Ribeiro", role: "CONFEITEIRA · BELO HORIZONTE", initials: "MR", bg: "#d4572a", dark: false },
-  { text: "O WhatsApp avisou que eu ia estourar o limite em agosto. Reorganizei as notas e entrei em dezembro dentro do MEI. Isso vale cada centavo.", name: "João Ferreira", role: "DESIGNER · FLORIANÓPOLIS", initials: "JF", bg: "#00d47e", dark: true, avatarColor: "#0a2540" },
-  { text: "Deixei 8 meses de DAS atrasar durante a pandemia. O MEIGuia parcelou tudo, regularizou em 3 semanas. Hoje pago um por mês, zero estresse.", name: "Camila Souza", role: "CABELEIREIRA · SALVADOR", initials: "CS", bg: "#0a2540", dark: false },
-  { text: "Não é um app bonito com números. É um time que responde de verdade. Minha contadora não tem paciência; o MEIGuia tem.", name: "Pedro Lima", role: "MARCENEIRO · CURITIBA", initials: "PL", bg: "#c89868", dark: false },
+  { text: "Descobri que meu CNPJ estava pendente só na hora de tirar um financiamento. Com o MEIGuia nunca mais tive surpresa.", name: "Mariana Ribeiro", role: "Confeiteira · BH", initials: "MR", bg: "#d4572a", dark: false },
+  { text: "O WhatsApp avisou que ia estourar o limite em agosto. Reorganizei e entrei em dezembro dentro do MEI. Vale cada centavo.", name: "João Ferreira", role: "Designer · Florianópolis", initials: "JF", bg: "#00d47e", dark: true, avatarColor: "#0a2540" },
+  { text: "Deixei 8 meses de DAS atrasar. O MEIGuia parcelou tudo, regularizou em 3 semanas. Hoje pago um por mês, zero estresse.", name: "Camila Souza", role: "Cabeleireira · Salvador", initials: "CS", bg: "#0a2540", dark: false },
+  { text: "Não é um app bonito com números. É um time que responde de verdade. Minha contadora não tem paciência; o MEIGuia tem.", name: "Pedro Lima", role: "Marceneiro · Curitiba", initials: "PL", bg: "#c89868", dark: false },
 ];
 
 const depoRow2 = [
-  { text: "Sou MEI há 6 anos e só agora entendo o que é 'limite'. O MEIGuia me educou sem parecer aula chata.", name: "Amanda Nogueira", role: "FOTÓGRAFA · RECIFE", initials: "AN", bg: "#13365e", dark: false },
-  { text: "Tinha um pavor do contador. Hoje resolvo tudo no WhatsApp e durmo tranquilo. Parece bobo, mas mudou minha rotina.", name: "Ricardo Gouveia", role: "PERSONAL TRAINER · SÃO PAULO", initials: "RG", bg: "#2b4a3e", dark: false },
-  { text: "Preço justo, atendimento rápido e sem aquela frescura de contabilidade tradicional. Recomendei pra 4 amigas já.", name: "Tatiane Alves", role: "MANICURE · GOIÂNIA", initials: "TA", bg: "#00d47e", dark: true, avatarColor: "#0a2540" },
-  { text: "Fiz a regularização em 18 dias. Estava sem dormir achando que ia perder o CNPJ. Salvou meu negócio.", name: "Lucas Campos", role: "ELETRICISTA · FORTALEZA", initials: "LC", bg: "#d4572a", dark: false },
+  { text: "Sou MEI há 6 anos e só agora entendo o que é 'limite'. O MEIGuia me educou sem parecer aula chata.", name: "Amanda Nogueira", role: "Fotógrafa · Recife", initials: "AN", bg: "#13365e", dark: false },
+  { text: "Tinha pavor de contador. Hoje resolvo tudo no WhatsApp e durmo tranquilo. Parece bobo, mas mudou minha rotina.", name: "Ricardo Gouveia", role: "Personal Trainer · SP", initials: "RG", bg: "#2b4a3e", dark: false },
+  { text: "Preço justo, atendimento rápido e sem frescura de contabilidade tradicional. Recomendei pra 4 amigas já.", name: "Tatiane Alves", role: "Manicure · Goiânia", initials: "TA", bg: "#00d47e", dark: true, avatarColor: "#0a2540" },
+  { text: "Fiz a regularização em 18 dias. Estava sem dormir achando que ia perder o CNPJ. Salvou meu negócio.", name: "Lucas Campos", role: "Eletricista · Fortaleza", initials: "LC", bg: "#d4572a", dark: false },
 ];
+
+/* ─── Benefícios ─── */
+const beneficios = [
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+      </svg>
+    ),
+    title: "Alertas automáticos",
+    desc: "Receba avisos por WhatsApp e e-mail aos 70%, 90% e 100% do limite. Nunca seja pego de surpresa.",
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/>
+      </svg>
+    ),
+    title: "CNPJ sempre em dia",
+    desc: "DAS gerado e pago automaticamente. Declarações no prazo. Zero pendências e multas.",
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+    ),
+    title: "Controle em tempo real",
+    desc: "Dashboard com seu faturamento atual, projeção do ano e quanto ainda pode faturar sem risco.",
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    ),
+    title: "Contador humano",
+    desc: "Dúvidas resolvidas por contador real no WhatsApp. Resposta em até 2h úteis, sem robô.",
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/>
+      </svg>
+    ),
+    title: "Exportação facilitada",
+    desc: "Notas em Excel ou CSV com um clique. Declaração anual sem estresse.",
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/>
+      </svg>
+    ),
+    title: "30 segundos por nota",
+    desc: "Interface criada para quem não é contador. Registre uma nota fiscal em menos de 30 segundos.",
+  },
+];
+
+/* ─── Problemas ─── */
+const problemas = [
+  {
+    emoji: "😰",
+    title: "Medo de estourar o limite",
+    desc: "Muitos MEIs perdem o enquadramento por ultrapassar R$ 81.000 no ano sem perceber. A Receita não avisa.",
+    fix: "MEIGuia monitora e avisa antes com antecedência.",
+  },
+  {
+    emoji: "📋",
+    title: "DAS em atraso, CNPJ sujo",
+    desc: "Esquecer o boleto mensal trava crédito, financiamento e licitação. Uma dívida vira bola de neve.",
+    fix: "DAS gerado e pago automaticamente todo mês.",
+  },
+  {
+    emoji: "😵",
+    title: "Contador que não explica nada",
+    desc: "Linguagem técnica, demora para responder e você fica sem entender o que está acontecendo com seu negócio.",
+    fix: "Contador humano via WhatsApp, resposta em 2h.",
+  },
+];
+
+/* ─── Passos ─── */
+const passos = [
+  { n: "01", title: "Crie sua conta grátis", desc: "Menos de 1 minuto. Só e-mail e senha. Sem burocracia." },
+  { n: "02", title: "Registre suas notas", desc: "Adicione cada nota emitida em 30 segundos. O cálculo é automático." },
+  { n: "03", title: "Relaxe e receba alertas", desc: "A gente monitora. Você foca no seu negócio e recebe avisos quando precisar agir." },
+];
+
+/* ─── Marquee items ─── */
+const marqueeItems = [
+  "DAS em dia", "Zero pendências", "Alertas inteligentes",
+  "Limite controlado", "Contador humano", "CNPJ protegido",
+  "DAS em dia", "Zero pendências", "Alertas inteligentes",
+  "Limite controlado", "Contador humano", "CNPJ protegido",
+];
+
+/* ════════════════════════════════════════════ */
 
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
@@ -53,32 +153,34 @@ export default function HomePage() {
   const [pct, setPct] = useState(72);
   const fillRef = useRef<HTMLDivElement>(null);
 
+  /* nav scroll */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    const fn = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => window.removeEventListener("scroll", fn);
   }, []);
 
+  /* live clock */
   useEffect(() => {
-    const tick = () => {
-      setClock(new Date().toLocaleTimeString("pt-BR"));
-    };
+    const tick = () => setClock(new Date().toLocaleTimeString("pt-BR"));
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
 
+  /* radar fill initial */
   useEffect(() => {
     const t = setTimeout(() => {
       if (fillRef.current) fillRef.current.style.width = "72%";
-    }, 400);
+    }, 600);
     return () => clearTimeout(t);
   }, []);
 
+  /* radar amount tick */
   useEffect(() => {
     let base = 58420;
     const id = setInterval(() => {
-      base += Math.floor(Math.random() * 30);
+      base += Math.floor(Math.random() * 40);
       setAmount(base);
       const p = Math.min(99, (base / 81000) * 100);
       setPct(Math.round(p));
@@ -87,80 +189,65 @@ export default function HomePage() {
     return () => clearInterval(id);
   }, []);
 
+  /* scroll reveal */
   useEffect(() => {
     const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add("in");
-            io.unobserve(e.target);
-          }
-        });
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -60px 0px" }
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }),
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
     );
-    document.querySelectorAll("[data-reveal], [data-reveal-stagger]").forEach((el) => io.observe(el));
+    document.querySelectorAll("[data-reveal],[data-reveal-stagger]").forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
 
+  /* number counters */
   useEffect(() => {
-    const counterIO = new IntersectionObserver(
+    const cio = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (!e.isIntersecting) return;
           const el = e.target as HTMLElement;
           const target = parseInt(el.dataset.count ?? "0", 10);
-          const dur = 1800;
           const start = performance.now();
           const step = (now: number) => {
-            const t = Math.min(1, (now - start) / dur);
-            const eased = 1 - Math.pow(1 - t, 3);
-            el.textContent = Math.round(target * eased).toLocaleString("pt-BR");
+            const t = Math.min(1, (now - start) / 1800);
+            el.textContent = Math.round(target * (1 - Math.pow(1 - t, 3))).toLocaleString("pt-BR");
             if (t < 1) requestAnimationFrame(step);
           };
           requestAnimationFrame(step);
-          counterIO.unobserve(el);
+          cio.unobserve(el);
         });
       },
       { threshold: 0.5 }
     );
-    document.querySelectorAll("[data-count]").forEach((el) => counterIO.observe(el));
-    return () => counterIO.disconnect();
+    document.querySelectorAll("[data-count]").forEach((el) => cio.observe(el));
+    return () => cio.disconnect();
   }, []);
-
-  const marqueeItems = [
-    "Proteção do CNPJ", "Tranquilidade mensal", "Zero pendências",
-    "Alertas inteligentes", "Regularização rápida", "Contador humano",
-    "Proteção do CNPJ", "Tranquilidade mensal", "Zero pendências",
-    "Alertas inteligentes", "Regularização rápida", "Contador humano",
-  ];
 
   return (
     <div className={styles.page}>
       <div className={styles.grain} aria-hidden />
 
-      {/* NAV */}
+      {/* ══ NAV ══ */}
       <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ""}`}>
         <Link href="/" className={styles.logo}>
           <span className={styles.logoMark} />
           MEIGuia
         </Link>
         <div className={styles.navLinks}>
-          <a href="#sobre">Sobre</a>
-          <a href="#diferenciais">Diferenciais</a>
-          <a href="#servicos">Serviços</a>
+          <a href="#problema">Por que MEIGuia</a>
+          <a href="#como-funciona">Como funciona</a>
           <a href="#depoimentos">Clientes</a>
           <a href="#faq">FAQ</a>
         </div>
         <div className={styles.navCta}>
           <Link href="/login" className={`${styles.btn} ${styles.btnGhost}`}>Entrar</Link>
-          <Link href="/cadastro" className={`${styles.btn} ${styles.btnPrimary}`}>
-            Começar agora <span className={styles.btnArrow}>→</span>
+          <Link href="/cadastro" className={`${styles.btn} ${styles.btnGreen}`}>
+            Começar grátis <span className={styles.btnArrow}>→</span>
           </Link>
         </div>
       </nav>
 
-      {/* HERO */}
+      {/* ══ HERO ══ */}
       <section className={styles.hero}>
         <div className={styles.heroBg} />
         <div className={styles.heroGrid} />
@@ -168,25 +255,31 @@ export default function HomePage() {
         <div className={styles.heroLeft}>
           <div className={styles.heroTag} data-reveal>
             <span className={styles.heroTagDot} />
-            <span>RADAR DO CNPJ · MONITORAMENTO ATIVO</span>
+            <span>Monitoramento ativo do CNPJ</span>
           </div>
+
           <h1 className={styles.heroTitle} data-reveal>
-            Seu CNPJ<br />
-            <em>protegido</em> antes<br />
-            do <span className={styles.strokeUnder}>problema</span><br />
-            acontecer.
+            Nunca mais estoure<br />
+            o limite do MEI<br />
+            <em>sem saber.</em>
           </h1>
+
           <p className={styles.lead} data-reveal>
-            O MEIGuia acompanha seu faturamento em tempo real e te avisa <em>antes</em> de estourar o limite, esquecer um DAS ou cair em pendência. Não é controle — é tranquilidade.
+            O MEIGuia monitora seu faturamento em tempo real, avisa antes de estourar o limite de R$&nbsp;81.000 e mantém seu CNPJ limpo — sem você precisar entender de contabilidade.
           </p>
+
           <div className={styles.heroActions} data-reveal>
-            <Link href="/cadastro" className={`${styles.btn} ${styles.btnGreen}`}>
+            <Link href="/cadastro" className={`${styles.btn} ${styles.btnGreen} ${styles.btnLg}`}>
               Proteger meu CNPJ <span className={styles.btnArrow}>→</span>
             </Link>
-            <a href="#servicos" className={styles.btnText}>
+            <a href="#como-funciona" className={styles.btnText}>
               Ver como funciona <span className={styles.btnArrow}>→</span>
             </a>
           </div>
+
+          <p className={styles.heroDisclaimer} data-reveal>
+            Grátis para começar · Sem cartão de crédito · Cancele quando quiser
+          </p>
 
           <div className={styles.heroStats} data-reveal-stagger>
             <div>
@@ -194,21 +287,17 @@ export default function HomePage() {
               <span className={styles.statLabel}>MEIs protegidos</span>
             </div>
             <div>
-              <span className={styles.statNum}>
-                R$ <span data-count="81">0</span>mi
-              </span>
+              <span className={styles.statNum}>R$&nbsp;<span data-count="81">0</span>mi</span>
               <span className={styles.statLabel}>Faturamento monitorado</span>
             </div>
             <div>
-              <span className={styles.statNum}>
-                <span data-count="99">0</span>,7%
-              </span>
+              <span className={styles.statNum}><span data-count="99">0</span>,7%</span>
               <span className={styles.statLabel}>Zero pendências</span>
             </div>
           </div>
         </div>
 
-        {/* RADAR CARD */}
+        {/* Radar Card */}
         <div className={styles.radarWrap} data-reveal>
           <div className={styles.radarCard}>
             <div className={`${styles.floatPill} ${styles.floatPill1}`}>
@@ -221,16 +310,12 @@ export default function HomePage() {
             </div>
 
             <div className={styles.rcHeader}>
-              <div className={styles.rcTitle}>
-                <span className={styles.rcLive} />
-                Faturamento 2026
-              </div>
+              <div className={styles.rcTitle}><span className={styles.rcLive} />Faturamento 2026</div>
               <div className={styles.rcTime}>{clock}</div>
             </div>
 
             <div className={styles.rcAmount}>
-              <span className={styles.currency}>R$</span>
-              {amount.toLocaleString("pt-BR")}
+              <span className={styles.currency}>R$</span>{amount.toLocaleString("pt-BR")}
             </div>
             <div className={styles.rcSub}>
               <strong>+ R$ 3.240</strong> esta semana · limite MEI R$ 81.000
@@ -244,25 +329,18 @@ export default function HomePage() {
               <div className={styles.rcMeterFill} ref={fillRef} />
             </div>
             <div className={styles.rcMeterTicks}>
-              <span>R$ 0</span>
-              <span>R$ 40.500</span>
-              <span>R$ 81.000</span>
+              <span>R$ 0</span><span>R$ 40.500</span><span>R$ 81.000</span>
             </div>
 
             <div className={styles.rcAlerts}>
               <div className={`${styles.rcAlert} ${styles.rcAlertOk}`}>
                 <div className={styles.rcAlertIcon}>✓</div>
-                <div className={styles.rcAlertText}>
-                  <b>DAS de abril quitado.</b><br />
-                  Próximo vencimento em 20 dias.
-                </div>
+                <div className={styles.rcAlertText}><b>DAS de abril quitado.</b><br />Próximo vencimento em 20 dias.</div>
                 <div className={styles.rcAlertTime}>agora</div>
               </div>
               <div className={`${styles.rcAlert} ${styles.rcAlertWarn}`}>
                 <div className={styles.rcAlertIcon}>!</div>
-                <div className={styles.rcAlertText}>
-                  <b>Atenção:</b> no ritmo atual, você atinge o limite em novembro. Vamos planejar?
-                </div>
+                <div className={styles.rcAlertText}><b>Atenção:</b> no ritmo atual, você atinge o limite em novembro.</div>
                 <div className={styles.rcAlertTime}>2min</div>
               </div>
             </div>
@@ -270,259 +348,273 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* MARQUEE */}
+      {/* ══ MARQUEE ══ */}
       <div className={styles.marquee}>
         <div className={styles.marqueeTrack}>
           {marqueeItems.map((item, i) => (
             <span key={i} style={{ display: "contents" }}>
-              <span>
-                {item === "Tranquilidade mensal" || item === "Regularização rápida"
-                  ? <><em>{item.split(" ")[0]}</em>{" " + item.split(" ").slice(1).join(" ")}</>
-                  : item}
-              </span>
+              <span>{item}</span>
               <span className={styles.marqueeDot} />
             </span>
           ))}
         </div>
       </div>
 
-      {/* SOBRE */}
-      <section id="sobre" className={`${styles.section} ${styles.sectionPaper}`}>
+      {/* ══ PROBLEMA ══ */}
+      <section id="problema" className={styles.problemaSection}>
         <div className={styles.sectionInner}>
-          <div data-reveal>
+          <div className={styles.sectionHeader} data-reveal>
             <div className={styles.sectionEyebrow}>
               <span className={styles.sectionEyebrowDash} />
-              <span>01 / Sobre</span>
+              <span>O problema</span>
             </div>
             <h2 className={styles.sectionTitle}>
-              A gente cuida do <em>chato</em>.<br />
-              Você cuida do que ama.
+              Ser MEI é simples.<br />
+              Mas os <em>riscos</em> são reais.
             </h2>
             <p className={styles.sectionLead}>
-              MEIGuia nasceu porque a maioria dos microempreendedores descobre os problemas tarde demais — quando o CNPJ já está pendente, o DAS já está em atraso, e o limite já estourou.
+              A maioria dos microempreendedores descobre os problemas tarde demais — quando o CNPJ já está sujo e o estrago já foi feito.
             </p>
           </div>
 
-          <div className={styles.sobreGrid}>
-            <div className={styles.sobreImg} data-reveal>
-              <div className={styles.sobreImgPlaceholder}>
-                <span className={styles.sobreImgLabel}>foto · empreendedora em sua loja</span>
-              </div>
-              <div className={styles.sobreImgTag}>
-                cliente desde 2024 · <em>zero pendências</em>
-              </div>
-            </div>
-
-            <div className={styles.sobreContent} data-reveal>
-              <h3>Não é mais um app de <em>controle</em>. É um radar.</h3>
-              <p>
-                A gente não inventou mais um dashboard com gráfico bonito pra você ficar conferindo toda semana. O MEIGuia roda sozinho no background, olhando seu faturamento, seus prazos e sua documentação, e só te chama quando precisa.
-              </p>
-              <p>
-                É o oposto do seu contador tradicional: linguagem simples, comunicação pelo WhatsApp, e um time humano por trás que entende que você não abriu um MEI pra virar especialista em Simples Nacional.
-              </p>
-              <div className={styles.sobreValues}>
-                {[
-                  ["— 01", "Antecipar problemas, não relatá-los."],
-                  ["— 02", "Linguagem de gente. Sem jargão contábil."],
-                  ["— 03", "Automatizar o que cansa. Humanizar o resto."],
-                  ["— 04", "Um único foco: manter seu CNPJ limpo."],
-                ].map(([num, text]) => (
-                  <div key={num} className={styles.sobreValue}>
-                    <div className={styles.sobreValueNum}>{num}</div>
-                    <div className={styles.sobreValueText}>{text}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* DIFERENCIAIS */}
-      <section id="diferenciais" className={styles.diferenciais}>
-        <div className={styles.sectionInner}>
-          <div data-reveal>
-            <div className={`${styles.sectionEyebrow} ${styles.sectionEyebrowLight}`}>
-              <span className={`${styles.sectionEyebrowDash} ${styles.sectionEyebrowDashLight}`} />
-              <span>02 / Diferenciais</span>
-            </div>
-            <h2 className={`${styles.sectionTitle} ${styles.sectionTitleLight}`}>
-              O que faz o MEIGuia<br />
-              ser <em>diferente</em>.
-            </h2>
-            <p className={`${styles.sectionLead} ${styles.sectionLeadLight}`}>
-              Enquanto a concorrência mostra números, o MEIGuia evita problema. Enquanto outros falam "controle", a gente entrega tranquilidade.
-            </p>
-          </div>
-
-          <div className={styles.difGrid} data-reveal-stagger>
-            {[
-              { n: "01", label: "PROTEÇÃO", icon: <path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z"/>, icon2: <path d="M9 12l2 2 4-4"/>, title: "Proteção do CNPJ em tempo real", desc: "Monitoramento contínuo do seu faturamento, prazos e documentação. A gente atua antes do problema estourar.", hl: "→ risco detectado em segundos" },
-              { n: "02", label: "SIMPLICIDADE", icon: <><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></>, title: "Simples de usar. Absurdamente.", desc: "Um onboarding que leva menos de 1 minuto. Sem termos técnicos, sem formulários intermináveis, sem jargão contábil.", hl: "→ 58 segundos em média" },
-              { n: "03", label: "AUTOMAÇÃO", icon: <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>, title: "Automação que desaparece", desc: "Você não calcula. Não acompanha. Não precisa lembrar. O sistema faz — e só aparece quando realmente precisa de você.", hl: "→ 0 decisões manuais" },
-              { n: "04", label: "WHATSAPP", icon: <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>, title: "Comunicação que corre atrás", desc: "A gente não espera você entrar no app. Avisos no WhatsApp, alertas por e-mail, lembretes humanos. Você é o foco.", hl: "→ proativo, nunca passivo" },
-              { n: "05", label: "FOCO", icon: <><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></>, title: "Um problema. Uma solução.", desc: "A gente não tenta fazer DRE, fluxo de caixa, gestão completa. Resolvemos uma coisa: seu CNPJ não dá problema.", hl: "→ zero distração" },
-              { n: "06", label: "HUMANO", icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></>, title: "Contador humano quando importa", desc: "Quando a regularização precisa de gente, a gente aparece. Consultoria direta com contador responsável, sem robô no meio.", hl: "→ resposta em até 2h" },
-            ].map(({ n, label, icon, title, desc, hl }) => (
-              <div key={n} className={styles.difCard}>
-                <div className={styles.difNum}>{n}<span className={styles.difNumDash} />{label}</div>
-                <div className={styles.difIcon}>
-                  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="var(--green)" strokeWidth="1.5">{icon}</svg>
+          <div className={styles.problemaGrid} data-reveal-stagger>
+            {problemas.map(({ emoji, title, desc, fix }) => (
+              <div key={title} className={styles.problemaCard}>
+                <div className={styles.problemaEmoji}>{emoji}</div>
+                <h3 className={styles.problemaTitle}>{title}</h3>
+                <p className={styles.problemaDesc}>{desc}</p>
+                <div className={styles.problemaFix}>
+                  <span className={styles.problemaFixCheck}>✓</span>
+                  {fix}
                 </div>
-                <h4>{title}</h4>
-                <p>{desc}</p>
-                <div className={styles.difCardHighlight}>{hl}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* SERVIÇOS */}
-      <section id="servicos" className={`${styles.section} ${styles.sectionPaper}`}>
+      {/* ══ SOLUÇÃO (com imagem) ══ */}
+      <section className={styles.solucaoSection}>
         <div className={styles.sectionInner}>
-          <div data-reveal>
+          <div className={styles.solucaoGrid}>
+            <div className={styles.solucaoImg} data-reveal>
+              <Image
+                src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80"
+                alt="Empreendedora brasileira no seu negócio"
+                fill
+                style={{ objectFit: "cover", objectPosition: "center top" }}
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+              <div className={styles.solucaoImgBadge}>
+                <span className={styles.solucaoImgBadgeDot} />
+                CNPJ monitorado 24h
+              </div>
+            </div>
+
+            <div className={styles.solucaoContent} data-reveal>
+              <div className={styles.sectionEyebrow}>
+                <span className={styles.sectionEyebrowDash} />
+                <span>A solução</span>
+              </div>
+              <h2 className={styles.solucaoTitle}>
+                Não é um app de controle.<br />
+                É um <em>radar</em>.
+              </h2>
+              <p className={styles.solucaoDesc}>
+                O MEIGuia roda no background, olhando seu faturamento, seus prazos e sua documentação, e <strong>só te chama quando precisa</strong>. É o oposto do contador tradicional: linguagem simples, WhatsApp e um time humano que entende que você não abriu um MEI para virar especialista em Simples Nacional.
+              </p>
+
+              <ul className={styles.solucaoList}>
+                {[
+                  "Monitora limite de faturamento em tempo real",
+                  "Gera e paga DAS automaticamente",
+                  "Avisa antes de qualquer prazo vencer",
+                  "Contador humano disponível no WhatsApp",
+                  "Regulariza CNPJ pendente de ponta a ponta",
+                ].map((item) => (
+                  <li key={item} className={styles.solucaoItem}>
+                    <span className={styles.solucaoCheck}>✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+
+              <Link href="/cadastro" className={`${styles.btn} ${styles.btnGreen} ${styles.btnLg}`}>
+                Começar agora — é grátis <span className={styles.btnArrow}>→</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ BENEFÍCIOS ══ */}
+      <section className={styles.beneficiosSection}>
+        <div className={styles.sectionInner}>
+          <div className={styles.sectionHeader} data-reveal>
             <div className={styles.sectionEyebrow}>
               <span className={styles.sectionEyebrowDash} />
-              <span>03 / Serviços</span>
+              <span>Funcionalidades</span>
             </div>
             <h2 className={styles.sectionTitle}>
-              Três serviços.<br />
-              Um <em>CNPJ</em> tranquilo.
+              Tudo que seu MEI precisa.<br />
+              <em>Nada que você não vai usar.</em>
             </h2>
-            <p className={styles.sectionLead}>
-              Foco extremo. A gente entrega três coisas — e entrega bem. Nada de pacote cheio de feature que você nunca vai usar.
-            </p>
           </div>
 
-          <div className={styles.servGrid} data-reveal-stagger>
-            {/* Card 1 - Featured */}
-            <div className={`${styles.servCard} ${styles.servCardFeatured}`}>
-              <div className={styles.servNumber}>SERVIÇO 01 / FLAGSHIP</div>
-              <div className={styles.servVisual}>
-                <div className={styles.vizDas}>
-                  {[20, 45, 35, 70, 55, 85, 95].map((h, i) => (
-                    <span key={i} style={{ height: `${h}%` }} />
-                  ))}
-                </div>
+          <div className={styles.beneficiosGrid} data-reveal-stagger>
+            {beneficios.map(({ icon, title, desc }) => (
+              <div key={title} className={styles.beneficioCard}>
+                <div className={styles.beneficioIcon}>{icon}</div>
+                <h3 className={styles.beneficioTitle}>{title}</h3>
+                <p className={styles.beneficioDesc}>{desc}</p>
               </div>
-              <h3 className={styles.servTitle}>Emissão de DAS mensal</h3>
-              <p className={styles.servDesc}>
-                DAS gerado, lembrado e, se quiser, pago automaticamente. Nunca mais um atraso, uma multa, ou um CNPJ pendente por esquecimento.
-              </p>
-              <div className={styles.servFeatures}>
-                {["Geração automática todo mês", "Aviso 5 dias antes do vencimento", "Pagamento via Pix em 1 clique", "Histórico completo de pagamentos"].map((f) => (
-                  <div key={f} className={styles.servFeature}>
-                    <span className={styles.servFeatureCheck}>✓</span> {f}
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ COMO FUNCIONA (com imagem) ══ */}
+      <section id="como-funciona" className={styles.passosSection}>
+        <div className={styles.sectionInner}>
+          <div className={styles.passosGrid}>
+            <div className={styles.passosContent}>
+              <div className={styles.sectionEyebrow} data-reveal>
+                <span className={styles.sectionEyebrowDash} />
+                <span>Como funciona</span>
+              </div>
+              <h2 className={styles.sectionTitle} data-reveal>
+                Proteja seu CNPJ<br />
+                em <em>3 passos</em>.
+              </h2>
+
+              <div className={styles.passosList} data-reveal-stagger>
+                {passos.map(({ n, title, desc }) => (
+                  <div key={n} className={styles.passoItem}>
+                    <div className={styles.passoNum}>{n}</div>
+                    <div>
+                      <h3 className={styles.passoTitle}>{title}</h3>
+                      <p className={styles.passoDesc}>{desc}</p>
+                    </div>
                   </div>
                 ))}
+              </div>
+
+              <div data-reveal>
+                <Link href="/cadastro" className={`${styles.btn} ${styles.btnGreen} ${styles.btnLg}`} style={{ marginTop: "2rem" }}>
+                  Criar conta grátis <span className={styles.btnArrow}>→</span>
+                </Link>
+                <p style={{ marginTop: "0.75rem", fontSize: "13px", color: "rgba(10,37,64,.5)" }}>
+                  Sem cartão de crédito · Leva menos de 1 minuto
+                </p>
               </div>
             </div>
 
-            {/* Card 2 */}
-            <div className={styles.servCard}>
-              <div className={styles.servNumber}>SERVIÇO 02</div>
-              <div className={styles.servVisual}>
-                <div className={styles.vizConsult}>
-                  <span>consultor online</span>
-                </div>
-              </div>
-              <h3 className={styles.servTitle}>Consultoria contábil humana</h3>
-              <p className={styles.servDesc}>
-                Dúvida sobre limite, emissão de nota, mudança de atividade? Fala com gente de verdade — contador responsável, sem robô de atendimento.
-              </p>
-              <div className={styles.servFeatures}>
-                {["Atendimento por WhatsApp", "Resposta em até 2h úteis", "Contador técnico responsável", "Linguagem simples, sem jargão"].map((f) => (
-                  <div key={f} className={styles.servFeature}>
-                    <span className={styles.servFeatureCheck}>✓</span> {f}
+            <div className={styles.passosImgWrap} data-reveal>
+              <Image
+                src="https://images.unsplash.com/photo-1664575602554-2087b04935a5?w=800&q=80"
+                alt="Empreendedor usando celular para controlar o negócio"
+                fill
+                style={{ objectFit: "cover", objectPosition: "center" }}
+                sizes="(max-width: 1024px) 100vw, 45vw"
+              />
+              <div className={styles.passosImgOverlay}>
+                <div className={styles.passosImgCard}>
+                  <div className={styles.passosImgCardDot} />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: "14px", color: "var(--ink)" }}>Limite seguro</div>
+                    <div style={{ fontSize: "12px", color: "rgba(10,37,64,.6)", marginTop: "2px" }}>R$ 22.580 ainda disponíveis</div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Card 3 */}
-            <div className={styles.servCard}>
-              <div className={styles.servNumber}>SERVIÇO 03</div>
-              <div className={styles.servVisual}>
-                <div className={styles.vizRegu}>
-                  {["done","done","warn","done","done","done"].map((s, i) => (
-                    <div key={i} className={s === "done" ? styles.vizReguDone : styles.vizReguWarn} />
-                  ))}
                 </div>
-              </div>
-              <h3 className={styles.servTitle}>Regularização de pendências</h3>
-              <p className={styles.servDesc}>
-                CNPJ pendente? DAS em atraso? Declaração esquecida? A gente mapeia tudo, resolve em ordem e te devolve um CNPJ limpo — rápido.
-              </p>
-              <div className={styles.servFeatures}>
-                {["Diagnóstico gratuito em 24h", "Parcelamento de DAS em atraso", "Declarações retroativas", "Acompanhamento até zerar"].map((f) => (
-                  <div key={f} className={styles.servFeature}>
-                    <span className={styles.servFeatureCheck}>✓</span> {f}
-                  </div>
-                ))}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* DEPOIMENTOS */}
+      {/* ══ PROVA SOCIAL ══ */}
       <section id="depoimentos" className={styles.depoSection}>
-        <div className={`${styles.sectionInner} ${styles.depoInner}`} data-reveal>
-          <div className={styles.depoHead}>
-            <div>
-              <div className={styles.sectionEyebrow}>
-                <span className={styles.sectionEyebrowDash} />
-                <span>04 / Quem usa</span>
+        {/* Stats bar */}
+        <div className={styles.sectionInner}>
+          <div className={styles.statsBar} data-reveal-stagger>
+            {[
+              { num: "+12.000", label: "MEIs protegidos" },
+              { num: "R$ 81mi", label: "Faturamento monitorado" },
+              { num: "< 30s", label: "Para registrar uma nota" },
+              { num: "2h", label: "Resposta do contador" },
+            ].map(({ num, label }) => (
+              <div key={label} className={styles.statItem}>
+                <span className={styles.statItemNum}>{num}</span>
+                <span className={styles.statItemLabel}>{label}</span>
               </div>
-              <h2 className={styles.sectionTitle}>
-                <em>12 mil</em> CNPJs<br />
-                dormindo tranquilos.
-              </h2>
+            ))}
+          </div>
+
+          <div className={`${styles.sectionHeader} ${styles.sectionHeaderCenter}`} data-reveal>
+            <div className={styles.sectionEyebrow} style={{ justifyContent: "center" }}>
+              <span className={styles.sectionEyebrowDash} />
+              <span>Depoimentos</span>
+              <span className={styles.sectionEyebrowDash} />
             </div>
-            <div className={styles.depoHeadRight}>
+            <h2 className={styles.sectionTitle} style={{ textAlign: "center", margin: "0 auto" }}>
+              <em>12 mil</em> CNPJs dormindo tranquilos.
+            </h2>
+            <p className={styles.sectionLead} style={{ margin: "0 auto", textAlign: "center" }}>
               Empreendedores de todo o Brasil que trocaram a ansiedade do boleto pelo silêncio do "tá tudo em dia".
-            </div>
+            </p>
           </div>
         </div>
 
         <DepoRow cards={depoRow1} />
         <DepoRow cards={depoRow2} reverse />
+
+        <div className={styles.sectionInner} style={{ marginTop: "3rem" }} data-reveal>
+          <div style={{ textAlign: "center" }}>
+            <Link href="/cadastro" className={`${styles.btn} ${styles.btnGreen} ${styles.btnLg}`}>
+              Quero fazer parte <span className={styles.btnArrow}>→</span>
+            </Link>
+          </div>
+        </div>
       </section>
 
-      {/* FAQ */}
+      {/* ══ FAQ ══ */}
       <section id="faq" className={styles.faqSection}>
         <div className={styles.sectionInner}>
           <div data-reveal>
             <div className={styles.sectionEyebrow}>
               <span className={styles.sectionEyebrowDash} />
-              <span>05 / Dúvidas frequentes</span>
+              <span>Dúvidas frequentes</span>
             </div>
             <h2 className={styles.sectionTitle}>
-              Respostas diretas,<br />
-              sem <em>enrolação</em>.
+              Respostas diretas,<br />sem <em>enrolação</em>.
             </h2>
           </div>
 
           <div className={styles.faqGrid}>
             <div className={styles.faqAside} data-reveal>
               <div className={styles.faqAsideCard}>
-                <h4>Não achou sua dúvida aqui?</h4>
-                <p>Chama a gente no WhatsApp. Contador responde em até 2h úteis, em português — não em contabilês.</p>
+                <h4>Não achou sua dúvida?</h4>
+                <p>Fala com a gente no WhatsApp. Contador responde em até 2h úteis.</p>
                 <Link href="/cadastro" className={`${styles.btn} ${styles.btnGreen}`}>
                   Falar agora <span className={styles.btnArrow}>→</span>
                 </Link>
+              </div>
+
+              {/* Imagem no aside do FAQ */}
+              <div className={styles.faqAsideImg}>
+                <Image
+                  src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&q=80"
+                  alt="Contador atendendo cliente"
+                  fill
+                  style={{ objectFit: "cover", objectPosition: "center top" }}
+                  sizes="400px"
+                />
               </div>
             </div>
 
             <div className={styles.faqList} data-reveal>
               {faqs.map((item, i) => (
                 <div key={i} className={`${styles.faqItem} ${faqOpen === i ? styles.faqItemOpen : ""}`}>
-                  <button
-                    className={styles.faqQ}
-                    onClick={() => setFaqOpen(faqOpen === i ? null : i)}
-                  >
+                  <button className={styles.faqQ} onClick={() => setFaqOpen(faqOpen === i ? null : i)}>
                     {item.q}
                     <span className={styles.faqPlus} />
                   </button>
@@ -536,35 +628,38 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* ══ CTA FINAL ══ */}
       <section id="cta" className={styles.ctaSection}>
         <div className={styles.ctaWatermark} aria-hidden>MEIGuia</div>
         <div className={styles.ctaWrap} data-reveal>
           <h2>Seu CNPJ<br />merece <em>dormir</em>.</h2>
           <p>Em menos de 1 minuto a gente começa a cuidar do seu CNPJ. Primeira consulta sem compromisso.</p>
           <div className={styles.ctaActions}>
-            <Link href="/cadastro" className={`${styles.btn} ${styles.btnPrimary}`}>
+            <Link href="/cadastro" className={`${styles.btn} ${styles.btnPrimary} ${styles.btnLg}`}>
               Começar agora <span className={styles.btnArrow}>→</span>
             </Link>
-            <Link href="/login" className={`${styles.btn} ${styles.btnGhost} ${styles.btnGhostLight}`}>
+            <Link href="/login" className={`${styles.btn} ${styles.btnGhost}`}>
               Já tenho conta
             </Link>
           </div>
+          <p style={{ marginTop: "1.5rem", fontSize: "13px", color: "rgba(10,37,64,.55)" }}>
+            Grátis para começar · Plano Pro a partir de R$ 19,90/mês · Garantia de 7 dias
+          </p>
         </div>
       </section>
 
-      {/* WORDMARK */}
+      {/* ══ WORDMARK ══ */}
       <div className={styles.wordmark}>
         <div className={styles.wordmarkText}>MEI<em>Guia</em>®</div>
       </div>
 
-      {/* FOOTER */}
+      {/* ══ FOOTER ══ */}
       <footer className={styles.footer}>
         <div className={styles.sectionInner}>
           <div className={styles.footGrid}>
             <div className={styles.footBrand}>
               <Link href="/" className={styles.logo} style={{ color: "var(--cream)" }}>
-                <span className={styles.logoMark} style={{ background: "var(--cream)" }} />
+                <span className={styles.logoMark} style={{ background: "rgba(245,241,234,.15)" }} />
                 MEIGuia
               </Link>
               <p className={styles.footTag}>
@@ -574,48 +669,51 @@ export default function HomePage() {
             <div className={styles.footCol}>
               <h5>Produto</h5>
               <ul>
-                <li><a href="#servicos">Emissão de DAS</a></li>
-                <li><a href="#servicos">Consultoria</a></li>
-                <li><a href="#servicos">Regularização</a></li>
-                <li><a href="#diferenciais">Diferenciais</a></li>
+                <li><a href="#problema">Por que MEIGuia</a></li>
+                <li><a href="#como-funciona">Como funciona</a></li>
+                <li><Link href="/landing">Planos e preços</Link></li>
+                <li><Link href="/calculadora-mei">Calculadora MEI</Link></li>
               </ul>
             </div>
             <div className={styles.footCol}>
               <h5>Empresa</h5>
               <ul>
-                <li><a href="#sobre">Sobre</a></li>
                 <li><a href="#depoimentos">Clientes</a></li>
-                <li><Link href="/landing">Planos</Link></li>
-                <li><Link href="/calculadora-mei">Calculadora MEI</Link></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><Link href="/termos">Termos de Uso</Link></li>
+                <li><a href="#">Política de Privacidade</a></li>
               </ul>
             </div>
             <div className={styles.footCol}>
               <h5>Contato</h5>
               <ul>
-                <li><a href="https://wa.me/5511999999999">WhatsApp</a></li>
-                <li><a href="mailto:suporte@portalmeiguia.com.br">E-mail</a></li>
-                <li><Link href="/termos">Termos de Uso</Link></li>
-                <li><a href="#">LGPD / Privacidade</a></li>
+                <li><a href="https://wa.me/5511999999999" target="_blank" rel="noopener">WhatsApp</a></li>
+                <li><a href="mailto:suporte@portalmeiguia.com.br">E-mail de suporte</a></li>
+                <li><Link href="/cadastro">Criar conta grátis</Link></li>
               </ul>
             </div>
           </div>
-
           <div className={styles.footBottom}>
             <div>© {new Date().getFullYear()} MEIGuia · Todos os direitos reservados</div>
-            <div>CRC ativo · LGPD compliant · Parceiro Sebrae</div>
+            <div>CRC ativo · LGPD compliant</div>
           </div>
         </div>
       </footer>
 
-      {/* Sticky mobile CTA */}
+      {/* ══ MOBILE STICKY CTA ══ */}
       <div className={styles.mobileCta}>
-        <Link href="/login" className={`${styles.btn} ${styles.btnGhost}`} style={{ flex: 1, justifyContent: "center" }}>Entrar</Link>
-        <Link href="/cadastro" className={`${styles.btn} ${styles.btnGreen}`} style={{ flex: 1, justifyContent: "center" }}>Começar grátis</Link>
+        <Link href="/login" className={`${styles.btn} ${styles.btnGhost}`} style={{ flex: 1, justifyContent: "center" }}>
+          Entrar
+        </Link>
+        <Link href="/cadastro" className={`${styles.btn} ${styles.btnGreen}`} style={{ flex: 1, justifyContent: "center" }}>
+          Começar grátis
+        </Link>
       </div>
     </div>
   );
 }
 
+/* ─── DepoRow component ─── */
 function DepoRow({ cards, reverse }: { cards: typeof depoRow1; reverse?: boolean }) {
   const doubled = [...cards, ...cards];
   return (
@@ -625,10 +723,7 @@ function DepoRow({ cards, reverse }: { cards: typeof depoRow1; reverse?: boolean
           <div className={styles.depoStars}>★★★★★</div>
           <p className={styles.depoText}>&ldquo;{c.text}&rdquo;</p>
           <div className={styles.depoAuthor}>
-            <div
-              className={styles.depoAvatar}
-              style={{ background: c.bg, color: c.avatarColor ?? "var(--cream)" }}
-            >
+            <div className={styles.depoAvatar} style={{ background: c.bg, color: c.avatarColor ?? "var(--cream)" }}>
               {c.initials}
             </div>
             <div>

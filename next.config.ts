@@ -17,7 +17,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://lh3.googleusercontent.com",
+      "img-src 'self' data: blob: https://lh3.googleusercontent.com https://images.unsplash.com https://plus.unsplash.com",
       "connect-src 'self' https://*.supabase.co https://api.stripe.com https://api.resend.com",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
     ].join("; "),
@@ -29,7 +29,11 @@ const nextConfig: NextConfig = {
   // @react-pdf/renderer precisa ser tratado como externo no servidor (não bundlado)
   serverExternalPackages: ["@react-pdf/renderer"],
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "lh3.googleusercontent.com" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "plus.unsplash.com" },
+    ],
   },
   async headers() {
     return [
