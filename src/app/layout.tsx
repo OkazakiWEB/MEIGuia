@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Montserrat, Raleway, Inter } from "next/font/google";
+import { Montserrat, Raleway, Inter, Fraunces } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { Analytics } from "@vercel/analytics/next";
@@ -26,6 +26,13 @@ const inter = Inter({
   display: "swap",
 });
 
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  axes: ["SOFT", "WONK"],
+  variable: "--font-fraunces",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Portal MEIguia — Controle de Faturamento para MEI",
   description:
@@ -47,7 +54,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${montserrat.variable} ${raleway.variable} ${inter.variable}`}>
+    <html lang="pt-BR" className={`${montserrat.variable} ${raleway.variable} ${inter.variable} ${fraunces.variable}`}>
       <head>
         <meta name="theme-color" content="#1A6B8A" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
