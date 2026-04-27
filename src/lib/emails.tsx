@@ -434,6 +434,73 @@ export function sendD3SemNotaEmail({ to, nome }: { to: string; nome: string }) {
   });
 }
 
+// ── Lembrete DAS — enviado no dia 15 de cada mês ─────────────────────────────
+export async function sendDasLembreteEmail({
+  to,
+  nome,
+  mes,
+  ano,
+  cnpj,
+  jaFoiPago,
+}: {
+  to: string;
+  nome: string;
+  mes: string;    // "Maio"
+  ano: number;
+  cnpj: string;  // 14 dígitos
+  jaFoiPago: boolean;
+}) {
+  if (jaFoiPago) return; // Não incomodar quem já pagou
+
+  const firstName = nome?.split(" ")[0] || "MEI";
+  const cnpjFormatado = cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+  const vencimento = `20/${String(new Date().getMonth() + 1).padStart(2, "0")}/${ano}`;
+
+  const html = baseLayout({
+    headerBg: "linear-gradient(135deg,#16a34a,#15803d)",
+    bannerBg: "#fefce8",
+    bannerBorder: "#ca8a04",
+    bannerText: `⏰ Seu DAS de ${mes} vence dia 20 — faltam 5 dias`,
+    ctaHref: `${APP_URL}/das`,
+    ctaText: "Acessar painel DAS",
+    ctaColor: "#16a34a",
+    body: `
+      <p style="margin:0 0 16px;color:#374151;font-size:15px;">Olá, <strong>${firstName}</strong>!</p>
+      <p style="margin:0 0 16px;color:#4B5563;font-size:15px;line-height:1.7;">
+        Seu <strong>DAS de ${mes}/${ano}</strong> vence em <strong>${vencimento}</strong>.
+        Não deixe para a última hora — o pagamento em atraso gera multa e juros.
+      </p>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin:0 0 20px;">
+        <tr>
+          <td>
+            <p style="margin:0 0 4px;color:#15803d;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Seu CNPJ</p>
+            <p style="margin:0;color:#14532d;font-size:20px;font-weight:700;font-family:monospace;">${cnpjFormatado}</p>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:0 0 8px;color:#374151;font-size:14px;font-weight:600;">Como gerar o DAS em 3 passos:</p>
+      <table cellpadding="0" cellspacing="0">
+        <tr><td style="padding:5px 0;color:#4B5563;font-size:14px;">1️⃣&nbsp; Acesse o painel DAS no MEIGuia</td></tr>
+        <tr><td style="padding:5px 0;color:#4B5563;font-size:14px;">2️⃣&nbsp; Clique em <strong>"Gerar DAS"</strong> — seu CNPJ é copiado automaticamente</td></tr>
+        <tr><td style="padding:5px 0;color:#4B5563;font-size:14px;">3️⃣&nbsp; Cole no portal Gov.br, gere o boleto e pague</td></tr>
+      </table>
+      <p style="margin:16px 0 0;color:#6B7280;font-size:13px;">Depois de pagar, volte ao MEIGuia e marque como pago para manter o histórico completo.</p>
+    `,
+    footer: `Você recebe este e-mail porque tem uma conta no MEIGuia e seu DAS está pendente.<br>
+      <a href="${APP_URL}/das" style="color:#16a34a;">Ver painel DAS</a> &nbsp;·&nbsp;
+      <a href="${APP_URL}/configuracoes" style="color:#16a34a;">Gerenciar notificações</a>`,
+  });
+
+  return getResend().emails.send({
+    from: FROM,
+    to,
+    subject: `⏰ DAS de ${mes} vence em 5 dias — ${cnpjFormatado}`,
+    html,
+  });
+}
+
 // ── D+7: Usuário sumiu após registrar notas ────────────────────────────────────
 export function sendD7InativoEmail({ to, nome, totalAno }: { to: string; nome: string; totalAno: number }) {
   const fmtBRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
