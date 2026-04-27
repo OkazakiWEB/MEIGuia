@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LayoutDashboard, FileText, Settings, LogOut, Menu, X, Sparkles } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, LogOut, Menu, X, Sparkles, Receipt } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { LogoInline } from "@/components/ui/Logo";
@@ -17,6 +17,7 @@ interface NavbarProps {
 const navItems = [
   { href: "/dashboard", label: "Dashboard",    icon: LayoutDashboard },
   { href: "/notas",     label: "Notas Fiscais", icon: FileText },
+  { href: "/das",       label: "Guias DAS",     icon: Receipt },
 ];
 
 export function Navbar({ profile, notasMes }: NavbarProps) {

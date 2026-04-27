@@ -19,6 +19,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      das_pagamentos: {
+        Row: {
+          id: string
+          user_id: string
+          competencia: string
+          vencimento: string
+          status: string
+          pago_em: string | null
+          comprovante_url: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          competencia: string
+          vencimento: string
+          status?: string
+          pago_em?: string | null
+          comprovante_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          competencia?: string
+          vencimento?: string
+          status?: string
+          pago_em?: string | null
+          comprovante_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "das_pagamentos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       contador_tokens: {
         Row: {
           created_at: string | null
