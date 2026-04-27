@@ -27,6 +27,7 @@ export type Database = {
           vencimento: string
           status: string
           pago_em: string | null
+          valor_pago: number | null
           comprovante_url: string | null
           created_at: string
           updated_at: string
@@ -38,6 +39,7 @@ export type Database = {
           vencimento: string
           status?: string
           pago_em?: string | null
+          valor_pago?: number | null
           comprovante_url?: string | null
           created_at?: string
           updated_at?: string
@@ -49,6 +51,7 @@ export type Database = {
           vencimento?: string
           status?: string
           pago_em?: string | null
+          valor_pago?: number | null
           comprovante_url?: string | null
           created_at?: string
           updated_at?: string
@@ -311,6 +314,7 @@ export type DasPagamento = {
   vencimento: string;    // "2025-05-20"
   status: "pendente" | "pago" | "atrasado";
   pago_em: string | null;
+  valor_pago: number | null;
   comprovante_url: string | null;
   created_at: string;
   updated_at: string;

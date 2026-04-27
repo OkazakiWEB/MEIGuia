@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import toast from "react-hot-toast";
-import { FileText, ExternalLink, CheckCircle, Clock, AlertTriangle, Copy, Settings } from "lucide-react";
+import { ExternalLink, CheckCircle, Clock, AlertTriangle, Copy, Settings } from "lucide-react";
 import type { DasPagamento } from "@/types/database";
 
 const MESES = [
@@ -46,9 +46,81 @@ function calcStatus(mes: number, ano: number, pago: boolean): "pago" | "atrasado
   return "pendente";
 }
 
+// Modal de confirmação de pagamento
+function ModalPagamento({
+  mesNome, onConfirm, onCancel, loading,
+}: {
+  mesNome: string;
+  onConfirm: (valor: number | null) => void;
+  onCancel: () => void;
+  loading: boolean;
+}) {
+  const [valor, setValor] = useState("");
+
+  function handleValor(e: React.ChangeEvent<HTMLInputElement>) {
+    setValor(e.target.value.replace(/[^\d,]/g, ""));
+  }
+
+  function handleConfirm() {
+    const num = parseFloat(valor.replace(",", "."));
+    onConfirm(isNaN(num) || num <= 0 ? null : num);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Confirmar pagamento</h2>
+            <p className="text-xs text-gray-500">DAS de {mesNome}</p>
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-gray-700 block mb-1.5">
+            Valor pago <span className="text-gray-400 font-normal">(opcional)</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">R$</span>
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder="0,00"
+              value={valor}
+              onChange={handleValor}
+              className="input pl-9"
+              autoFocus
+            />
+          </div>
+          <p className="text-xs text-gray-400 mt-1">
+            Informe quanto pagou para manter o histórico completo. Você pode deixar em branco.
+          </p>
+        </div>
+
+        <div className="flex gap-3 pt-1">
+          <button onClick={onCancel} disabled={loading} className="btn-secondary flex-1 text-sm">
+            Cancelar
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={loading}
+            className="flex-1 py-2 px-4 rounded-xl font-semibold text-sm text-white bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? <span className="animate-spin">⏳</span> : "Confirmar"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
   const [lista, setLista] = useState<DasPagamento[]>(pagamentos);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [modal, setModal] = useState<{ mes: number; competencia: string } | null>(null);
 
   // Monta os 12 meses com dados do banco ou defaults
   const meses = Array.from({ length: 12 }, (_, i) => {
@@ -61,34 +133,36 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
 
   const mesAtual = new Date().getMonth() + 1;
 
-  async function marcarPago(mes: number, competencia: string) {
-    if (!cnpj) return;
+  async function confirmarPagamento(valorPago: number | null) {
+    if (!modal || !cnpj) return;
+    const { mes, competencia } = modal;
     setLoadingId(competencia);
     const supabase = createClient();
     const hoje = new Date().toISOString().split("T")[0];
     const vencimento = `${anoAtual}-${String(mes).padStart(2, "0")}-20`;
-
     const existente = lista.find((p) => p.competencia.startsWith(competencia.slice(0, 7)));
 
     if (existente) {
       const { error } = await supabase
         .from("das_pagamentos")
-        .update({ status: "pago", pago_em: hoje })
+        .update({ status: "pago", pago_em: hoje, valor_pago: valorPago })
         .eq("id", existente.id);
-      if (error) { toast.error("Erro ao atualizar."); setLoadingId(null); return; }
-      setLista((prev) => prev.map((p) => p.id === existente.id ? { ...p, status: "pago", pago_em: hoje } : p));
+      if (error) { toast.error("Erro ao atualizar."); setLoadingId(null); setModal(null); return; }
+      setLista((prev) => prev.map((p) => p.id === existente.id
+        ? { ...p, status: "pago", pago_em: hoje, valor_pago: valorPago } : p));
     } else {
       const { data, error } = await supabase
         .from("das_pagamentos")
-        .insert({ user_id: userId, competencia, vencimento, status: "pago", pago_em: hoje })
+        .insert({ user_id: userId, competencia, vencimento, status: "pago", pago_em: hoje, valor_pago: valorPago })
         .select()
         .single();
-      if (error) { toast.error("Erro ao registrar."); setLoadingId(null); return; }
+      if (error) { toast.error("Erro ao registrar."); setLoadingId(null); setModal(null); return; }
       setLista((prev) => [...prev, data as DasPagamento]);
     }
 
     toast.success("DAS marcado como pago!");
     setLoadingId(null);
+    setModal(null);
   }
 
   async function desmarcarPago(id: string) {
@@ -96,10 +170,10 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
     const supabase = createClient();
     const { error } = await supabase
       .from("das_pagamentos")
-      .update({ status: "pendente", pago_em: null })
+      .update({ status: "pendente", pago_em: null, valor_pago: null })
       .eq("id", id);
     if (error) { toast.error("Erro ao atualizar."); setLoadingId(null); return; }
-    setLista((prev) => prev.map((p) => p.id === id ? { ...p, status: "pendente", pago_em: null } : p));
+    setLista((prev) => prev.map((p) => p.id === id ? { ...p, status: "pendente", pago_em: null, valor_pago: null } : p));
     toast.success("Registro atualizado.");
     setLoadingId(null);
   }
@@ -115,7 +189,7 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
     return (
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <FileText className="w-6 h-6 text-gray-700" />
+          <AlertTriangle className="w-6 h-6 text-gray-700" />
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Guias DAS</h1>
             <p className="text-gray-500 text-sm">Controle mensal do seu Documento de Arrecadação</p>
@@ -137,8 +211,11 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
     );
   }
 
-  const pagoCount    = meses.filter((m) => m.status === "pago").length;
+  const pagoCount     = meses.filter((m) => m.status === "pago").length;
   const atrasadoCount = meses.filter((m) => m.status === "atrasado").length;
+  const totalPagoAno  = lista
+    .filter((p) => p.status === "pago" && p.valor_pago)
+    .reduce((sum, p) => sum + Number(p.valor_pago), 0);
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -175,7 +252,7 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
       </div>
 
       {/* ── Resumo do ano ── */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="card text-center">
           <p className="text-2xl font-bold text-green-600">{pagoCount}</p>
           <p className="text-xs text-gray-500 mt-1">Pagos</p>
@@ -187,6 +264,14 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
         <div className="card text-center">
           <p className="text-2xl font-bold text-gray-400">{12 - pagoCount - atrasadoCount}</p>
           <p className="text-xs text-gray-500 mt-1">Pendentes</p>
+        </div>
+        <div className="card text-center">
+          <p className="text-lg font-bold text-gray-800">
+            {totalPagoAno > 0
+              ? `R$ ${totalPagoAno.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+              : "—"}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">Total pago {anoAtual}</p>
         </div>
       </div>
 
@@ -256,7 +341,7 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
                   </div>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {status === "pago" && registro?.pago_em
-                      ? `Pago em ${new Date(registro.pago_em + "T00:00:00").toLocaleDateString("pt-BR")}`
+                      ? `Pago em ${new Date(registro.pago_em + "T00:00:00").toLocaleDateString("pt-BR")}${registro.valor_pago ? ` · R$ ${Number(registro.valor_pago).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : ""}`
                       : status === "atrasado"
                       ? `Venceu em ${vencimento}`
                       : diasRestantes > 0
@@ -278,7 +363,7 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
                   )}
                   {status !== "pago" ? (
                     <button
-                      onClick={() => marcarPago(mes, competencia)}
+                      onClick={() => setModal({ mes, competencia })}
                       disabled={loadingId === competencia}
                       className="text-xs bg-green-600 hover:bg-green-700 text-white rounded-lg px-3 py-1.5 font-medium transition-colors disabled:opacity-50"
                     >
@@ -306,6 +391,16 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
         O MEIGuia não emite o DAS — o documento é gerado no portal oficial da Receita Federal.
         Mantenha seus pagamentos em dia para não perder os benefícios do MEI.
       </p>
+
+      {/* ── Modal de pagamento ── */}
+      {modal && (
+        <ModalPagamento
+          mesNome={MESES[modal.mes - 1]}
+          loading={loadingId === modal.competencia}
+          onConfirm={confirmarPagamento}
+          onCancel={() => setModal(null)}
+        />
+      )}
     </div>
   );
 }
