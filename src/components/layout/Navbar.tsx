@@ -41,7 +41,7 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
   }
 
   function NavItem({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) {
-    const isActive = pathname.startsWith(href);
+    const isActive = pathname === href || pathname.startsWith(href + "/");
     const isNotas = href === "/notas";
     return (
       <Link

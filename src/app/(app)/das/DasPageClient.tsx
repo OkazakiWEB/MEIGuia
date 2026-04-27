@@ -55,15 +55,18 @@ function ModalPagamento({
   onCancel: () => void;
   loading: boolean;
 }) {
-  const [valor, setValor] = useState("");
+  const [centavos, setCentavos] = useState(0);
+  const valorDisplay = centavos > 0
+    ? (centavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : "";
 
   function handleValor(e: React.ChangeEvent<HTMLInputElement>) {
-    setValor(e.target.value.replace(/[^\d,]/g, ""));
+    const digits = e.target.value.replace(/\D/g, "");
+    setCentavos(digits ? Math.min(parseInt(digits, 10), 9999999) : 0);
   }
 
   function handleConfirm() {
-    const num = parseFloat(valor.replace(",", "."));
-    onConfirm(isNaN(num) || num <= 0 ? null : num);
+    onConfirm(centavos > 0 ? centavos / 100 : null);
   }
 
   return (
@@ -87,11 +90,12 @@ function ModalPagamento({
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">R$</span>
             <input
               type="text"
-              inputMode="decimal"
+              inputMode="numeric"
               placeholder="0,00"
-              value={valor}
+              value={valorDisplay}
               onChange={handleValor}
               className="input pl-9"
+              autoComplete="off"
               autoFocus
             />
           </div>
