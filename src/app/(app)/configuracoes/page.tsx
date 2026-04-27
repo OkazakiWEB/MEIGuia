@@ -16,6 +16,7 @@ export default function ConfiguracoesPage() {
 
   const [fullName, setFullName]           = useState("");
   const [email, setEmail]                 = useState("");
+  const [cnpj, setCnpj]                   = useState("");
   const [userId, setUserId]               = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl]         = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -29,6 +30,25 @@ export default function ConfiguracoesPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting]           = useState(false);
 
+  function formatCnpj(value: string) {
+    const digits = value.replace(/\D/g, "").slice(0, 14);
+    return digits
+      .replace(/^(\d{2})(\d)/, "$1.$2")
+      .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/\.(\d{3})(\d)/, ".$1/$2")
+      .replace(/(\d{4})(\d)/, "$1-$2");
+  }
+
+  async function handleUpdateCnpj() {
+    if (!userId) return;
+    const digits = cnpj.replace(/\D/g, "");
+    if (digits.length !== 14) { toast.error("CNPJ inválido. Informe os 14 dígitos."); return; }
+    const supabase = createClient();
+    const { error } = await supabase.from("profiles").update({ cnpj: digits }).eq("id", userId);
+    if (error) toast.error("Erro ao salvar CNPJ.");
+    else toast.success("CNPJ atualizado!");
+  }
+
   useEffect(() => {
     const supabase = createClient();
     async function load() {
@@ -37,15 +57,16 @@ export default function ConfiguracoesPage() {
       setUserId(user.id);
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, email, plano, subscription_status, avatar_url")
+        .select("full_name, email, plano, subscription_status, avatar_url, cnpj")
         .eq("id", user.id)
-        .single<{ full_name: string | null; email: string | null; plano: string | null; subscription_status: string | null; avatar_url: string | null }>();
+        .single<{ full_name: string | null; email: string | null; plano: string | null; subscription_status: string | null; avatar_url: string | null; cnpj: string | null }>();
 
       setFullName(profile?.full_name || "");
       setEmail(profile?.email || user.email || "");
       setIsPro(profile?.plano === "pro");
       setSubscriptionStatus(profile?.subscription_status || null);
       setAvatarUrl(profile?.avatar_url || null);
+      setCnpj(profile?.cnpj ? formatCnpj(profile.cnpj) : "");
       setLoadingProfile(false);
     }
     load();
@@ -226,6 +247,30 @@ export default function ConfiguracoesPage() {
                 {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : "Salvar alterações"}
               </button>
             </form>
+
+            {/* CNPJ — separado do form de nome para salvar independentemente */}
+            <div className="border-t border-gray-100 pt-5 mt-1">
+              <label className="label">CNPJ do MEI</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="00.000.000/0001-00"
+                  value={cnpj}
+                  onChange={(e) => setCnpj(formatCnpj(e.target.value))}
+                  inputMode="numeric"
+                  maxLength={18}
+                />
+                <button
+                  type="button"
+                  onClick={handleUpdateCnpj}
+                  className="btn-secondary text-sm whitespace-nowrap"
+                >
+                  Salvar
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Necessário para gerar sua Guia DAS.</p>
+            </div>
           </div>
         )}
       </div>
