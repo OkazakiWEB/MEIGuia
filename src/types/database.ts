@@ -143,6 +143,7 @@ export type Database = {
         Row: {
           ano_referencia: number
           avatar_url: string | null
+          cnpj: string | null
           created_at: string | null
           email: string | null
           full_name: string | null
@@ -162,6 +163,7 @@ export type Database = {
         Insert: {
           ano_referencia?: number
           avatar_url?: string | null
+          cnpj?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
@@ -181,6 +183,7 @@ export type Database = {
         Update: {
           ano_referencia?: number
           avatar_url?: string | null
+          cnpj?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
@@ -255,3 +258,16 @@ export type Tables<
 export type NotaFiscal      = Tables<"notas_fiscais">;
 export type Profile         = Tables<"profiles">;
 export type ContadorToken   = Tables<"contador_tokens">;
+
+// Tipo manual para das_pagamentos (adicionado via migration)
+export type DasPagamento = {
+  id: string;
+  user_id: string;
+  competencia: string;   // "2025-05-01"
+  vencimento: string;    // "2025-05-20"
+  status: "pendente" | "pago" | "atrasado";
+  pago_em: string | null;
+  comprovante_url: string | null;
+  created_at: string;
+  updated_at: string;
+};

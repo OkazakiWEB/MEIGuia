@@ -16,15 +16,43 @@ function CadastroForm() {
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [cnpj, setCnpj] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const supabase = createClient();
 
+  function formatCnpj(value: string) {
+    const digits = value.replace(/\D/g, "").slice(0, 14);
+    return digits
+      .replace(/^(\d{2})(\d)/, "$1.$2")
+      .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/\.(\d{3})(\d)/, ".$1/$2")
+      .replace(/(\d{4})(\d)/, "$1-$2");
+  }
+
+  function validateCnpj(cnpj: string): boolean {
+    const digits = cnpj.replace(/\D/g, "");
+    if (digits.length !== 14) return false;
+    if (/^(\d)\1+$/.test(digits)) return false;
+    const calc = (d: string, len: number) => {
+      let sum = 0, pos = len - 7;
+      for (let i = len; i >= 1; i--) {
+        sum += parseInt(d[len - i]) * pos--;
+        if (pos < 2) pos = 9;
+      }
+      return sum % 11 < 2 ? 0 : 11 - (sum % 11);
+    };
+    return calc(digits, 12) === parseInt(digits[12]) &&
+           calc(digits, 13) === parseInt(digits[13]);
+  }
+
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     if (password.length < 8) { toast.error("A senha deve ter pelo menos 8 caracteres."); return; }
+    const cnpjDigits = cnpj.replace(/\D/g, "");
+    if (!validateCnpj(cnpj)) { toast.error("CNPJ inválido. Verifique o número informado."); return; }
     setLoading(true);
 
     const { data, error } = await supabase.auth.signUp({
@@ -36,6 +64,11 @@ function CadastroForm() {
     });
 
     if (error) { toast.error(error.message); setLoading(false); return; }
+
+    // Salva CNPJ no perfil após criar conta
+    if (data.user) {
+      await supabase.from("profiles").update({ cnpj: cnpjDigits }).eq("id", data.user.id);
+    }
 
     // Se a sessão foi criada imediatamente (confirmação de e-mail desabilitada)
     if (data.session) {
@@ -109,6 +142,14 @@ function CadastroForm() {
             <label className="label">Nome completo</label>
             <input type="text" className="input" placeholder="João da Silva"
               value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+          </div>
+          <div>
+            <label className="label">CNPJ do MEI</label>
+            <input type="text" className="input" placeholder="00.000.000/0001-00"
+              value={cnpj}
+              onChange={(e) => setCnpj(formatCnpj(e.target.value))}
+              inputMode="numeric" maxLength={18} required />
+            <p className="text-xs text-gray-400 mt-1">Usado para gerar sua Guia DAS automaticamente.</p>
           </div>
           <div>
             <label className="label">E-mail</label>

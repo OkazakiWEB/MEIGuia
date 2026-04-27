@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   id              UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email           TEXT,
   full_name       TEXT,
+  cnpj            TEXT CHECK (cnpj IS NULL OR cnpj ~ '^\d{14}$'),
   plano           TEXT NOT NULL DEFAULT 'free' CHECK (plano IN ('free', 'pro')),
   stripe_customer_id      TEXT UNIQUE,
   stripe_subscription_id  TEXT UNIQUE,
@@ -46,6 +47,31 @@ CREATE TABLE IF NOT EXISTS public.notas_fiscais (
 );
 
 COMMENT ON TABLE public.notas_fiscais IS 'Notas fiscais emitidas pelo MEI';
+
+-- ============================================================
+-- TABELA: das_pagamentos
+-- Controle mensal das Guias DAS do MEI
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.das_pagamentos (
+  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id         UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  competencia     DATE NOT NULL,   -- primeiro dia do mês: 2025-05-01
+  vencimento      DATE NOT NULL,   -- sempre dia 20: 2025-05-20
+  status          TEXT NOT NULL DEFAULT 'pendente'
+                  CHECK (status IN ('pendente', 'pago', 'atrasado')),
+  pago_em         DATE,
+  comprovante_url TEXT,
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, competencia)
+);
+
+CREATE TRIGGER trigger_das_updated_at
+  BEFORE UPDATE ON public.das_pagamentos
+  FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+
+CREATE INDEX IF NOT EXISTS idx_das_user_id          ON public.das_pagamentos(user_id);
+CREATE INDEX IF NOT EXISTS idx_das_user_competencia ON public.das_pagamentos(user_id, competencia);
 
 -- ============================================================
 -- TABELA: historico_anual
@@ -152,9 +178,10 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ROW LEVEL SECURITY (RLS)
 -- ============================================================
 
-ALTER TABLE public.profiles      ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.notas_fiscais ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notas_fiscais   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.historico_anual ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.das_pagamentos  ENABLE ROW LEVEL SECURITY;
 
 -- Profiles: usuário vê/edita apenas seu próprio perfil
 CREATE POLICY "profiles: select proprio" ON public.profiles
@@ -179,6 +206,16 @@ CREATE POLICY "notas: delete proprio" ON public.notas_fiscais
 -- Histórico: somente leitura do próprio
 CREATE POLICY "historico: select proprio" ON public.historico_anual
   FOR SELECT USING (auth.uid() = user_id);
+
+-- DAS: CRUD apenas nos próprios registros
+CREATE POLICY "das: select proprio" ON public.das_pagamentos
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "das: insert proprio" ON public.das_pagamentos
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "das: update proprio" ON public.das_pagamentos
+  FOR UPDATE USING (auth.uid() = user_id);
 
 -- Service role ignora RLS (necessário para webhooks do Stripe)
 -- As funções com SECURITY DEFINER rodam como superuser, ok para webhooks
@@ -227,3 +264,4 @@ GRANT SELECT ON public.historico_anual TO authenticated;
 GRANT SELECT ON public.dashboard_summary TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_faturamento_anual TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_notas_mes_atual TO authenticated;
+GRANT ALL ON public.das_pagamentos TO authenticated;
