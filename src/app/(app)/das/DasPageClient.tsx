@@ -25,8 +25,15 @@ function formatCnpj(cnpj: string) {
   return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 }
 
-function dasUrl(cnpj: string) {
-  return `https://www8.receita.fazenda.gov.br/SimplesNacional/Aplicacoes/ATSPO/pgmei.app/Identificacao?cnpj=${cnpj}`;
+const DAS_URL = "https://www8.receita.fazenda.gov.br/SimplesNacional/Aplicacoes/ATSPO/pgmei.app/Identificacao";
+
+function abrirDas(cnpj: string) {
+  navigator.clipboard.writeText(formatCnpj(cnpj)).catch(() => {});
+  window.open(DAS_URL, "_blank", "noopener,noreferrer");
+  toast("CNPJ copiado! Cole no campo do portal Gov.br.", {
+    icon: "📋",
+    duration: 5000,
+  });
 }
 
 function calcStatus(mes: number, ano: number, pago: boolean): "pago" | "atrasado" | "pendente" | "futuro" {
@@ -53,7 +60,6 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
   });
 
   const mesAtual = new Date().getMonth() + 1;
-  const mesFoco = meses.find((m) => m.mes === mesAtual) ?? meses[0];
 
   async function marcarPago(mes: number, competencia: string) {
     if (!cnpj) return;
@@ -143,16 +149,14 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Guias DAS</h1>
           <p className="text-gray-500 text-sm mt-1">Ano fiscal {anoAtual}</p>
         </div>
-        <a
-          href={dasUrl(cnpj)}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={() => abrirDas(cnpj)}
           className="btn-primary flex items-center gap-2 text-sm flex-shrink-0"
         >
           <ExternalLink className="w-4 h-4" />
           <span className="hidden sm:inline">Gerar DAS</span>
           <span className="sm:hidden">DAS</span>
-        </a>
+        </button>
       </div>
 
       {/* ── Card CNPJ ── */}
@@ -264,15 +268,13 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
                 {/* Ações */}
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {status !== "pago" && (
-                    <a
-                      href={dasUrl(cnpj)}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => abrirDas(cnpj)}
                       className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-1.5"
                     >
                       <ExternalLink className="w-3 h-3" />
                       Gerar DAS
-                    </a>
+                    </button>
                   )}
                   {status !== "pago" ? (
                     <button
