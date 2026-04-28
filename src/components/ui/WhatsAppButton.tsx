@@ -1,6 +1,6 @@
 "use client";
 
-const NUMERO = "5511999999999"; // substitua pelo número real de suporte
+const NUMERO = "5511992175848"; // substitua pelo número real de suporte
 const MENSAGEM = encodeURIComponent(
   "Olá, preciso de ajuda com meu MEI no MEIGuia"
 );
