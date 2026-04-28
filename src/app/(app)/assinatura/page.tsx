@@ -39,14 +39,21 @@ function AssinaturaContent() {
   const success  = searchParams.get("success");
   const canceled = searchParams.get("canceled");
 
+  const intervalParam = searchParams.get("interval");
+  const planParam     = searchParams.get("plan");
+
   const [profile, setProfile]                 = useState<Profile | null>(null);
   const [loading, setLoading]                 = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState<null | "pro" | "premium">(null);
   const [portalLoading, setPortalLoading]     = useState(false);
-  const [interval, setInterval]               = useState<Interval>("monthly");
+  const [interval, setInterval]               = useState<Interval>(intervalParam === "annual" ? "annual" : "monthly");
 
   useEffect(() => {
     loadProfile();
+    // Auto-checkout se vier do cadastro com plano e intervalo selecionados
+    if (planParam === "pro" || planParam === "premium") {
+      handleCheckout(planParam as "pro" | "premium");
+    }
     if (success) {
       toast.success("🎉 Plano Pro ativado! Seu MEI está protegido.");
       if (typeof window !== "undefined" && (window as any).gtag) {

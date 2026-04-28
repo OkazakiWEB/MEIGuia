@@ -19,6 +19,7 @@ function CadastroForm() {
   const [selectedPlan, setSelectedPlan] = useState<"free" | "pro" | "premium">(
     planParam === "premium" ? "premium" : planParam === "pro" ? "pro" : "free"
   );
+  const [interval, setInterval] = useState<"monthly" | "annual">("monthly");
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -84,7 +85,7 @@ function CadastroForm() {
         (window as any).fbq("track", "CompleteRegistration", { content_name: selectedPlan });
       }
       toast.success("Conta criada! Bem-vindo ao MEIguia 🎉");
-      router.push(selectedPlan !== "free" ? "/assinatura?upgrade=true" : "/dashboard");
+      router.push(selectedPlan !== "free" ? `/assinatura?upgrade=true&plan=${selectedPlan}&interval=${interval}` : "/dashboard");
       router.refresh();
       return;
     }
@@ -199,7 +200,34 @@ function CadastroForm() {
           </div>
 
           {/* ── Seletor de plano ── */}
-          <div className="grid grid-cols-3 gap-2 pt-2">
+          {/* Toggle mensal / anual */}
+          <div className="flex items-center justify-center gap-1 pt-2">
+            <button
+              type="button"
+              onClick={() => setInterval("monthly")}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                interval === "monthly"
+                  ? "bg-gray-800 text-white"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Mensal
+            </button>
+            <button
+              type="button"
+              onClick={() => setInterval("annual")}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                interval === "annual"
+                  ? "bg-gray-800 text-white"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Anual
+              <span className="ml-1 bg-green-100 text-green-700 text-[9px] font-bold px-1 py-0.5 rounded-full">-20%</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
             {/* Free */}
             <button
               type="button"
@@ -243,10 +271,12 @@ function CadastroForm() {
               </span>
               <p className="text-[10px] font-semibold text-brand-500 uppercase tracking-wide mb-1">Pro</p>
               <p className="text-lg font-extrabold text-gray-900">
-                R$&nbsp;24,90
+                R$&nbsp;{interval === "annual" ? "19,92" : "24,90"}
                 <span className="text-[10px] font-normal text-gray-400">/mês</span>
               </p>
-              <p className="text-[10px] text-brand-600 font-medium mt-0.5">30 notas/mês</p>
+              <p className="text-[10px] text-brand-600 font-medium mt-0.5">
+                {interval === "annual" ? "R$ 239/ano cobrado hoje" : "30 notas/mês"}
+              </p>
               <ul className="mt-2 space-y-1">
                 {["Alertas automáticos", "Previsão anual", "Exportar relatório"].map((f) => (
                   <li key={f} className="flex items-center gap-1 text-[10px] text-gray-700">
@@ -272,10 +302,12 @@ function CadastroForm() {
               </span>
               <p className="text-[10px] font-semibold text-purple-500 uppercase tracking-wide mb-1">Premium</p>
               <p className="text-lg font-extrabold text-gray-900">
-                R$&nbsp;49,90
+                R$&nbsp;{interval === "annual" ? "39,92" : "49,90"}
                 <span className="text-[10px] font-normal text-gray-400">/mês</span>
               </p>
-              <p className="text-[10px] text-purple-600 font-medium mt-0.5">Ilimitado</p>
+              <p className="text-[10px] text-purple-600 font-medium mt-0.5">
+                {interval === "annual" ? "R$ 479/ano cobrado hoje" : "Ilimitado"}
+              </p>
               <ul className="mt-2 space-y-1">
                 {["WhatsApp alertas", "Emissão de DAS", "NF (em breve)"].map((f) => (
                   <li key={f} className="flex items-center gap-1 text-[10px] text-gray-700">
