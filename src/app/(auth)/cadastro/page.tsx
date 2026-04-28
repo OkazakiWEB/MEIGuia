@@ -9,7 +9,6 @@ import toast from "react-hot-toast";
 import { Logo } from "@/components/ui/Logo";
 import { track } from "@vercel/analytics";
 
-const PRECO_MENSAL = "R$ 19,90/mês";
 
 function CadastroForm() {
   const router = useRouter();
@@ -198,55 +197,78 @@ function CadastroForm() {
             })()}
           </div>
 
-          {/* ── Seletor de plano (no final, sem pressão) ── */}
-          <div className="pt-2">
-            <p className="text-xs text-gray-500 mb-2 font-medium">Escolha seu plano:</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setSelectedPlan("free")}
-                className={`rounded-xl border-2 p-3 text-left transition-all ${
-                  !isPro
-                    ? "border-gray-400 bg-gray-50"
-                    : "border-gray-200 bg-white hover:border-gray-300"
-                }`}
-              >
-                <p className="text-xs font-semibold text-gray-500 mb-0.5">Gratuito</p>
-                <p className="text-sm font-bold text-gray-700">R$ 0</p>
-                <p className="text-[11px] text-gray-400 mt-1">Até 10 notas/mês</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedPlan("pro")}
-                className={`relative rounded-xl border-2 p-3 text-left transition-all ${
-                  isPro
-                    ? "border-brand-500 bg-brand-50"
-                    : "border-gray-200 bg-white hover:border-brand-300"
-                }`}
-              >
-                {!isPro && (
-                  <span className="absolute -top-2 right-2 bg-brand-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                    RECOMENDADO
-                  </span>
-                )}
-                <p className="text-xs font-semibold text-brand-500 mb-0.5">Pro</p>
-                <p className="text-sm font-bold text-gray-900">{PRECO_MENSAL}</p>
-                <ul className="mt-1 space-y-0.5">
-                  {["Notas ilimitadas", "Alertas de limite", "Previsão anual"].map((f) => (
-                    <li key={f} className="flex items-center gap-1 text-[11px] text-gray-600">
-                      <CheckCircle className="w-2.5 h-2.5 text-brand-500 flex-shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </button>
-            </div>
-            {isPro && (
-              <p className="text-[11px] text-brand-600 mt-1.5 text-center">
-                Você será direcionado para o pagamento após criar a conta.
+          {/* ── Seletor de plano ── */}
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            {/* Free */}
+            <button
+              type="button"
+              onClick={() => setSelectedPlan("free")}
+              className={`relative rounded-xl border-2 p-4 text-left transition-all ${
+                !isPro
+                  ? "border-gray-400 bg-white shadow-sm"
+                  : "border-gray-200 bg-gray-50 hover:border-gray-300"
+              }`}
+            >
+              {!isPro && (
+                <span className="absolute -top-2.5 left-3 bg-gray-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  SELECIONADO
+                </span>
+              )}
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Gratuito</p>
+              <p className="text-xl font-extrabold text-gray-800">R$ 0</p>
+              <p className="text-xs text-gray-400 mt-0.5">Para começar</p>
+              <ul className="mt-3 space-y-1">
+                {["Até 10 notas/mês", "Dashboard básico"].map((f) => (
+                  <li key={f} className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <CheckCircle className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                    {f}
+                  </li>
+                ))}
+                <li className="text-xs text-gray-300 line-through pl-[18px]">Alertas de limite</li>
+                <li className="text-xs text-gray-300 line-through pl-[18px]">Previsão anual</li>
+              </ul>
+            </button>
+
+            {/* Pro */}
+            <button
+              type="button"
+              onClick={() => setSelectedPlan("pro")}
+              className={`relative rounded-xl border-2 p-4 text-left transition-all ${
+                isPro
+                  ? "border-brand-500 bg-brand-50 shadow-md shadow-brand-100"
+                  : "border-gray-200 bg-white hover:border-brand-300"
+              }`}
+            >
+              <span className="absolute -top-2.5 left-3 bg-brand-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                {isPro ? "SELECIONADO" : "⭐ RECOMENDADO"}
+              </span>
+              <p className="text-xs font-semibold text-brand-500 uppercase tracking-wide mb-1">Pro</p>
+              <p className="text-xl font-extrabold text-gray-900">
+                R$&nbsp;19,90
+                <span className="text-sm font-normal text-gray-400">/mês</span>
               </p>
-            )}
+              <p className="text-xs text-brand-600 font-medium mt-0.5">menos de R$ 0,70/dia</p>
+              <ul className="mt-3 space-y-1">
+                {[
+                  "Notas ilimitadas",
+                  "Alertas automáticos",
+                  "Previsão de estouro",
+                  "Exportar para contador",
+                ].map((f) => (
+                  <li key={f} className="flex items-center gap-1.5 text-xs text-gray-700">
+                    <CheckCircle className={`w-3 h-3 flex-shrink-0 ${isPro ? "text-brand-500" : "text-gray-400"}`} />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </button>
           </div>
+
+          {isPro && (
+            <p className="text-xs text-brand-600 text-center -mt-1">
+              Você será direcionado para o pagamento após criar a conta.
+            </p>
+          )}
 
           <button type="submit" disabled={loading} className="btn-primary w-full py-3 font-semibold">
             {loading
