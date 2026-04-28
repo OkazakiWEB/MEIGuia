@@ -97,20 +97,34 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
           ))}
         </nav>
 
-        {/* Banner upgrade para free (quando >= 15 notas) */}
-        {isFree && notasMes >= 6 && (
-          <div className="mx-3 mb-3 bg-petroleo-800 border border-petroleo-600 rounded-xl p-3">
-            <p className="text-xs text-petroleo-200 mb-2">
+        {/* Upgrade CTA — sempre visível para free, urgência aumenta com uso */}
+        {isFree && (
+          <div className={cn(
+            "mx-3 mb-3 rounded-xl p-3 border",
+            notasMes >= 10
+              ? "bg-red-900/40 border-red-700"
+              : notasMes >= 6
+              ? "bg-petroleo-800 border-petroleo-600"
+              : "bg-petroleo-800/60 border-petroleo-700"
+          )}>
+            <p className="text-xs text-petroleo-200 mb-2 leading-snug">
               {notasMes >= 10
                 ? "Limite atingido este mês."
-                : `Você usou ${notasMes}/10 notas este mês.`}
+                : notasMes >= 6
+                ? `Você usou ${notasMes}/10 notas este mês.`
+                : "Alertas, previsão e notas ilimitadas no Pro."}
             </p>
             <Link
               href="/assinatura"
-              className="flex items-center justify-center gap-1.5 w-full bg-agua-500 hover:bg-agua-600 text-white text-xs font-semibold py-2 rounded-lg transition-colors"
+              className={cn(
+                "flex items-center justify-center gap-1.5 w-full text-white text-xs font-semibold py-2 rounded-lg transition-colors",
+                notasMes >= 10
+                  ? "bg-red-500 hover:bg-red-600"
+                  : "bg-agua-500 hover:bg-agua-600"
+              )}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              Upgrade para Pro
+              {notasMes >= 10 ? "Desbloqueie o Pro" : "Fazer upgrade"}
             </Link>
           </div>
         )}
@@ -198,15 +212,22 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
               Configurações
             </Link>
 
-            {/* Banner upgrade mobile */}
-            {isFree && notasMes >= 6 && (
+            {/* Banner upgrade mobile — sempre visível para free */}
+            {isFree && (
               <Link
                 href="/assinatura"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center gap-2 w-full bg-agua-500 hover:bg-agua-600 text-white text-sm font-semibold py-3 rounded-lg transition-colors mt-2"
+                className={cn(
+                  "flex items-center justify-center gap-2 w-full text-white text-sm font-semibold py-3 rounded-lg transition-colors mt-2",
+                  notasMes >= 10
+                    ? "bg-red-500 hover:bg-red-600"
+                    : "bg-agua-500 hover:bg-agua-600"
+                )}
               >
                 <Sparkles className="w-4 h-4" />
-                Upgrade para Pro — R$ 19,90/mês
+                {notasMes >= 10
+                  ? "Limite atingido — Fazer upgrade"
+                  : "Fazer upgrade para Pro — R$ 19,90/mês"}
               </Link>
             )}
 

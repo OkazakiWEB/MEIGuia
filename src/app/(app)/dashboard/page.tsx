@@ -246,6 +246,24 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {/* ── Card de valor Pro para free users com pouco uso (sem ProGate ainda) ── */}
+      {!isPro && totalNotasReais > 0 && totalNotasReais < 3 && (
+        <div className="rounded-xl border border-brand-200 bg-brand-50 p-4 flex items-start gap-3">
+          <Sparkles className="w-5 h-5 text-brand-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-brand-800">
+              Sabia que você pode configurar alertas automáticos de limite?
+            </p>
+            <p className="text-xs text-brand-700 mt-1">
+              Com o Pro, você recebe aviso antes de ultrapassar R$&nbsp;81.000 e vê em tempo real quanto ainda pode faturar no ano.
+            </p>
+            <a href="/assinatura" className="inline-block mt-2 text-xs font-semibold text-brand-700 underline hover:text-brand-900">
+              Conhecer o Pro →
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* ── Previsões Pro — ocultas se não Pro ou se totalAno = 0 ── */}
       {mostrarPrevisoes ? (
         <div className="grid md:grid-cols-2 gap-4">
