@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Navbar } from "@/components/layout/Navbar";
 import { OnboardingModal } from "@/components/ui/OnboardingModal";
+import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -28,6 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           userName={profile?.full_name ?? ""}
         />
       )}
+      <WhatsAppButton />
     </div>
   );
 }

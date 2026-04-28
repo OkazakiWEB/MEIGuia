@@ -79,6 +79,9 @@ export async function POST(request: NextRequest) {
             plano: isActive ? "pro" : "free",
             stripe_subscription_id: subscription.id,
             subscription_status: subscription.status,
+            pro_expires_at: isActive
+              ? new Date(subscription.current_period_end * 1000).toISOString()
+              : null,
           },
           event.type
         );

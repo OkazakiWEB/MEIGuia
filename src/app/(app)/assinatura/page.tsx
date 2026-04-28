@@ -81,16 +81,23 @@ function AssinaturaContent() {
   }, [success, canceled]);
 
   async function loadProfile() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data } = await supabase
-      .from("profiles")
-      .select("plano, subscription_status, stripe_subscription_id")
-      .eq("id", user.id)
-      .single();
-    setProfile(data);
-    setLoading(false);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("plano, subscription_status, stripe_subscription_id")
+        .eq("id", user.id)
+        .single();
+      if (error) console.error("[Assinatura] loadProfile error:", error);
+      setProfile(data ?? null);
+    } catch (err) {
+      console.error("[Assinatura] loadProfile unexpected:", err);
+      toast.error("Erro ao carregar dados. Recarregue a página.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleCheckout() {
