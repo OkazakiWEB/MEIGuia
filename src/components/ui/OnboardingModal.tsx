@@ -7,6 +7,28 @@ import { track } from "@vercel/analytics";
 import { Loader2, ChevronLeft, HelpCircle } from "lucide-react";
 import { LIMITE_MEI } from "@/lib/constants";
 
+function formatCnpj(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 14);
+  return d
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
+function validateCnpj(cnpj: string): boolean {
+  const d = cnpj.replace(/\D/g, "");
+  if (d.length !== 14 || /^(\d)\1+$/.test(d)) return false;
+  const calc = (s: string, n: number) => {
+    let sum = 0;
+    for (let i = 0; i < s.length; i++) sum += parseInt(s[i]) * (n - i);
+    const r = sum % 11;
+    return r < 2 ? 0 : 11 - r;
+  };
+  return calc(d.slice(0, 12), 5) === parseInt(d[12]) &&
+         calc(d.slice(0, 13), 6) === parseInt(d[13]);
+}
+
 interface OnboardingModalProps {
   userId: string;
   userName: string;
@@ -74,9 +96,13 @@ export function OnboardingModal({ userId, userName }: OnboardingModalProps) {
   const router = useRouter();
   const firstName = userName?.split(" ")[0] || "você";
 
-  // step: "entrada" | "direto" | "freq" | "valor" | "estimativa" | "confirmacao"
+  // step: "entrada" | "direto" | "freq" | "valor" | "estimativa" | "cnpj"
   const [step, setStep]           = useState<string>("entrada");
   const [saving, setSaving]       = useState(false);
+
+  // CNPJ
+  const [cnpjInput, setCnpjInput] = useState("");
+  const [cnpjErro, setCnpjErro]   = useState("");
 
   // Fluxo direto
   const [valorDireto, setValorDireto]     = useState("");
@@ -102,8 +128,13 @@ export function OnboardingModal({ userId, userName }: OnboardingModalProps) {
     return Math.round(freqSel * vm * MES_ATUAL);
   }
 
-  // ── Salvar e ir para dashboard ────────────────────────────────────────────
-  async function handleConfirmar() {
+  // ── Ir para passo de CNPJ antes de finalizar ─────────────────────────────
+  function handleConfirmar() {
+    setStep("cnpj");
+  }
+
+  // ── Salvar tudo e ir para dashboard ──────────────────────────────────────
+  async function handleFinalizar(cnpj: string | null) {
     setSaving(true);
     const supabase = createClient();
     const valor = getValorFinal();
@@ -119,8 +150,11 @@ export function OnboardingModal({ userId, userName }: OnboardingModalProps) {
       });
     }
 
-    await supabase.from("profiles").update({ onboarding_completed: true }).eq("id", userId);
-    track("onboarding_completed", { faturamento_inicial: valor, fluxo: step });
+    const profileUpdate: Record<string, unknown> = { onboarding_completed: true };
+    if (cnpj) profileUpdate.cnpj = cnpj;
+    await supabase.from("profiles").update(profileUpdate).eq("id", userId);
+
+    track("onboarding_completed", { faturamento_inicial: valor, tem_cnpj: !!cnpj });
     router.push("/dashboard");
     router.refresh();
   }
@@ -159,6 +193,7 @@ export function OnboardingModal({ userId, userName }: OnboardingModalProps) {
                 {step === "freq"       && "Passo 1 de 3"}
                 {step === "valor"      && "Passo 2 de 3"}
                 {step === "estimativa" && "Passo 3 de 3 — sua estimativa"}
+                {step === "cnpj"       && "Quase lá! 🎉"}
               </p>
             </div>
           </div>
@@ -424,6 +459,63 @@ export function OnboardingModal({ userId, userName }: OnboardingModalProps) {
               </div>
             );
           })()}
+
+          {/* ── PASSO: CNPJ ──────────────────────────────────────────────── */}
+          {step === "cnpj" && (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600 text-center">
+                Seu dashboard está pronto! Quer adicionar seu CNPJ agora para controlar o DAS mensal?
+              </p>
+
+              <div>
+                <label className="label text-sm font-semibold text-gray-700">CNPJ do MEI</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className={`input ${cnpjErro ? "border-red-400" : ""}`}
+                  placeholder="00.000.000/0001-00"
+                  value={cnpjInput}
+                  onChange={(e) => {
+                    setCnpjErro("");
+                    setCnpjInput(formatCnpj(e.target.value));
+                  }}
+                  maxLength={18}
+                  autoFocus
+                />
+                {cnpjErro && <p className="text-xs text-red-500 mt-1">{cnpjErro}</p>}
+                <p className="text-xs text-gray-400 mt-1">
+                  Usado só para o controle do DAS. Você pode adicionar depois em Configurações.
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  const digits = cnpjInput.replace(/\D/g, "");
+                  if (digits.length > 0 && !validateCnpj(cnpjInput)) {
+                    setCnpjErro("CNPJ inválido. Verifique e tente novamente.");
+                    return;
+                  }
+                  handleFinalizar(digits.length === 14 ? digits : null);
+                }}
+                disabled={saving}
+                className="btn-primary w-full py-3.5 font-bold flex items-center justify-center gap-2"
+              >
+                {saving
+                  ? <><Loader2 className="w-5 h-5 animate-spin" /> Configurando...</>
+                  : cnpjInput.replace(/\D/g, "").length === 14
+                  ? "Salvar CNPJ e ver dashboard →"
+                  : "Ver dashboard →"}
+              </button>
+
+              <button
+                onClick={() => handleFinalizar(null)}
+                disabled={saving}
+                className="w-full text-xs text-gray-400 hover:text-gray-600 py-1.5 transition"
+              >
+                Pular — adiciono o CNPJ depois
+              </button>
+            </div>
+          )}
 
         </div>
       </div>
