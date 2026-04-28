@@ -9,7 +9,7 @@ import Link from "next/link";
 import {
   formatCurrency, calcPercentual, calcPrevisaoAnual, calcSugestaoMensal,
 } from "@/lib/utils";
-import { TrendingUp, FileText, Calendar, Plus, Sparkles } from "lucide-react";
+import { TrendingUp, FileText, Calendar, Plus, Sparkles, AlertTriangle } from "lucide-react";
 import { NotasUsageBar } from "@/components/ui/NotasUsageBar";
 import type { NotaFiscal } from "@/types/database";
 import { LIMITE_MEI } from "@/lib/constants";
@@ -86,6 +86,22 @@ export default async function DashboardPage() {
 
   const qtdNotasMes = notasMesCount ?? 0;
 
+  // Previsão de estouro (disponível para todos os usuários)
+  const mesesDecorridos = new Date().getMonth() + 1; // 1–12
+  const mediaMensal = mesesDecorridos > 0 ? totalAno / mesesDecorridos : 0;
+  const previsaoAnualTodos = mediaMensal * 12;
+  const mesesParaEstouro = mediaMensal > 0 ? Math.ceil((LIMITE_MEI - totalAno) / mediaMensal) : null;
+  const mesEstouro = mesesParaEstouro != null && mesesParaEstouro > 0
+    ? new Date(new Date().getFullYear(), new Date().getMonth() + mesesParaEstouro, 1)
+        .toLocaleDateString("pt-BR", { month: "long" })
+    : null;
+  // Mostrar alerta de estouro quando projeção > 85% do limite e há ao menos 2 meses de dados
+  const mostrarAlertaEstouro =
+    totalNotasReais > 0 &&
+    mesesDecorridos >= 2 &&
+    previsaoAnualTodos > LIMITE_MEI * 0.85 &&
+    totalAno < LIMITE_MEI;
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* ── Cabeçalho ── */}
@@ -150,6 +166,37 @@ export default async function DashboardPage() {
           icon={<span className="text-xl">💰</span>}
         />
       </div>
+
+      {/* ── Alerta de previsão de estouro (todos os usuários) ── */}
+      {mostrarAlertaEstouro && (
+        <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-orange-800">
+                No seu ritmo atual, você vai ultrapassar o limite MEI
+                {mesEstouro ? ` em ${mesEstouro}` : " ainda este ano"}!
+              </p>
+              <p className="text-xs text-orange-700 mt-1">
+                Projeção anual:{" "}
+                <span className="font-bold">{formatCurrency(previsaoAnualTodos)}</span>
+                {" "}— limite MEI: {formatCurrency(LIMITE_MEI)}.{" "}
+                {isPro
+                  ? `Reduza para no máximo ${formatCurrency(calcSugestaoMensal(totalAno))}/mês para não estourar.`
+                  : "Assine o Pro para ver quanto pode faturar por mês com segurança."}
+              </p>
+              {!isPro && (
+                <a
+                  href="/assinatura"
+                  className="inline-block mt-2 text-xs font-semibold text-orange-800 underline hover:text-orange-900"
+                >
+                  Ver plano Pro →
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Contador de notas (plano free) ── */}
       {!isPro && <NotasUsageBar used={qtdNotasMes} />}
