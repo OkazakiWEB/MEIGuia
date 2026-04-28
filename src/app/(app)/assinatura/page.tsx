@@ -2,12 +2,12 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { Loader2 as LoaderFallback } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   Loader2, ShieldCheck, CreditCard, AlertCircle,
   CheckCircle, XCircle, Bell, TrendingUp, Sparkles,
-  FileDown, Lock, RotateCcw, MessageSquare, Receipt, FileText,
+  FileDown, Lock, RotateCcw, MessageSquare, Receipt, FileText, Phone,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { track } from "@vercel/analytics";
@@ -36,6 +36,7 @@ const PREMIUM_FEATURES = [
 
 function AssinaturaContent() {
   const searchParams = useSearchParams();
+  const router       = useRouter();
   const success  = searchParams.get("success");
   const canceled = searchParams.get("canceled");
 
@@ -47,6 +48,8 @@ function AssinaturaContent() {
   const [checkoutLoading, setCheckoutLoading] = useState<null | "pro" | "premium">(null);
   const [portalLoading, setPortalLoading]     = useState(false);
   const [interval, setInterval]               = useState<Interval>(intervalParam === "annual" ? "annual" : "monthly");
+  const [phone, setPhone]                     = useState("");
+  const [savingPhone, setSavingPhone]         = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -54,18 +57,9 @@ function AssinaturaContent() {
     if (planParam === "pro" || planParam === "premium") {
       handleCheckout(planParam as "pro" | "premium");
     }
-    if (success) {
-      toast.success("🎉 Plano Pro ativado! Seu MEI está protegido.");
-      if (typeof window !== "undefined" && (window as any).gtag) {
-        (window as any).gtag("event", "purchase", { currency: "BRL", value: 19.90, transaction_id: Date.now().toString() });
-      }
-      if (typeof window !== "undefined" && (window as any).fbq) {
-        (window as any).fbq("track", "Purchase", { currency: "BRL", value: 19.90 });
-      }
-    }
     if (canceled) toast.error("Assinatura cancelada. Você pode tentar novamente a qualquer hora.");
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [success, canceled]);
+  }, [canceled]);
 
   async function loadProfile() {
     try {
@@ -128,6 +122,33 @@ function AssinaturaContent() {
     }
   }
 
+  function formatPhone(value: string) {
+    const d = value.replace(/\D/g, "").slice(0, 11);
+    if (d.length <= 2)  return d;
+    if (d.length <= 7)  return `(${d.slice(0,2)}) ${d.slice(2)}`;
+    if (d.length <= 11) return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+    return d;
+  }
+
+  async function handleSavePhone(skip = false) {
+    setSavingPhone(true);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && !skip) {
+        const digits = phone.replace(/\D/g, "");
+        await supabase.from("profiles").update({ whatsapp_phone: digits }).eq("id", user.id);
+      }
+      if (typeof window !== "undefined" && (window as any).gtag)
+        (window as any).gtag("event", "purchase", { currency: "BRL", value: profile?.plano === "premium" ? 49.90 : 24.90, transaction_id: Date.now().toString() });
+      if (typeof window !== "undefined" && (window as any).fbq)
+        (window as any).fbq("track", "Purchase", { currency: "BRL", value: profile?.plano === "premium" ? 49.90 : 24.90 });
+      router.push("/dashboard");
+    } finally {
+      setSavingPhone(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -140,6 +161,84 @@ function AssinaturaContent() {
   const isPro     = plano === "pro";
   const isPremium = plano === "premium";
   const isPastDue = profile?.subscription_status === "past_due";
+
+  // ── Tela de sucesso pós-pagamento ─────────────────────────────────────────
+  if (success) {
+    return (
+      <div className="max-w-md mx-auto">
+        <div className={`card border-2 text-center py-10 px-6 space-y-6 ${isPremium ? "border-purple-300 bg-purple-50" : "border-brand-200 bg-brand-50"}`}>
+          {/* Ícone */}
+          <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto ${isPremium ? "bg-purple-100" : "bg-brand-100"}`}>
+            <ShieldCheck className={`w-10 h-10 ${isPremium ? "text-purple-600" : "text-brand-600"}`} />
+          </div>
+
+          {/* Título */}
+          <div>
+            <p className={`text-xs font-bold uppercase tracking-widest mb-1 ${isPremium ? "text-purple-500" : "text-brand-500"}`}>
+              {isPremium ? "Plano Premium ativado 🚀" : "Plano Pro ativado ✨"}
+            </p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {isPremium ? "Bem-vindo ao Premium!" : "Seu MEI está protegido!"}
+            </h1>
+            <p className="text-sm text-gray-500 mt-2">
+              {isPremium
+                ? "Você tem acesso a alertas, previsão, DAS integrado e em breve emissão de NF."
+                : "Alertas automáticos e previsão anual estão ativos."}
+            </p>
+          </div>
+
+          {/* Celular — apenas Premium */}
+          {isPremium && (
+            <div className="text-left space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                <span className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-purple-500" />
+                  Celular para alertas via WhatsApp
+                </span>
+              </label>
+              <input
+                type="tel"
+                className="input"
+                placeholder="(11) 99999-9999"
+                value={phone}
+                onChange={(e) => setPhone(formatPhone(e.target.value))}
+                inputMode="numeric"
+                maxLength={15}
+              />
+              <p className="text-xs text-gray-400">
+                Você receberá alertas quando se aproximar do limite anual de R$ 81.000.
+              </p>
+            </div>
+          )}
+
+          {/* Botão principal */}
+          <button
+            onClick={() => handleSavePhone(isPremium && phone.replace(/\D/g, "").length < 10)}
+            disabled={savingPhone || (isPremium && phone.replace(/\D/g, "").length > 0 && phone.replace(/\D/g, "").length < 10)}
+            className={`w-full py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 transition ${
+              isPremium ? "bg-purple-600 hover:bg-purple-700" : "bg-brand-600 hover:bg-brand-700"
+            } disabled:opacity-50`}
+          >
+            {savingPhone
+              ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>
+              : isPremium && phone.replace(/\D/g, "").length >= 10
+              ? <><CheckCircle className="w-4 h-4" /> Salvar e ir ao dashboard</>
+              : "Ir ao dashboard →"}
+          </button>
+
+          {/* Pular (só Premium) */}
+          {isPremium && (
+            <button
+              onClick={() => handleSavePhone(true)}
+              className="text-xs text-gray-400 hover:text-gray-600 transition underline"
+            >
+              Pular por agora
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // ── Tela do assinante ativo ───────────────────────────────────────────────
   if (isPro || isPremium) {
