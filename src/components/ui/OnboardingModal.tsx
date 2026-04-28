@@ -150,9 +150,10 @@ export function OnboardingModal({ userId, userName }: OnboardingModalProps) {
       });
     }
 
-    const profileUpdate: Record<string, unknown> = { onboarding_completed: true };
-    if (cnpj) profileUpdate.cnpj = cnpj;
-    await supabase.from("profiles").update(profileUpdate).eq("id", userId);
+    await supabase
+      .from("profiles")
+      .update({ onboarding_completed: true, ...(cnpj ? { cnpj } : {}) })
+      .eq("id", userId);
 
     track("onboarding_completed", { faturamento_inicial: valor, tem_cnpj: !!cnpj });
     router.push("/dashboard");
