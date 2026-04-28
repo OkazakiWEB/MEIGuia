@@ -4,15 +4,22 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, CheckCircle, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
 import { Logo } from "@/components/ui/Logo";
 import { track } from "@vercel/analytics";
 
+const PRECO_MENSAL = "19,90";
+
 function CadastroForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const plan = searchParams.get("plan");
+  const planParam = searchParams.get("plan");
+
+  // Plano selecionado: começa com o que veio na URL (ou "free" por padrão)
+  const [selectedPlan, setSelectedPlan] = useState<"free" | "pro">(
+    planParam === "pro" ? "pro" : "free"
+  );
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -65,65 +72,135 @@ function CadastroForm() {
 
     if (error) { toast.error(error.message); setLoading(false); return; }
 
-    // Salva CNPJ no perfil após criar conta
     if (data.user) {
       await supabase.from("profiles").update({ cnpj: cnpjDigits }).eq("id", data.user.id);
     }
 
-    // Se a sessão foi criada imediatamente (confirmação de e-mail desabilitada)
     if (data.session) {
-      track("signup_completed", { method: "email", plan: plan || "free" });
-      // GA4
+      track("signup_completed", { method: "email", plan: selectedPlan });
       if (typeof window !== "undefined" && (window as any).gtag) {
         (window as any).gtag("event", "sign_up", { method: "email" });
       }
-      // Meta Pixel
       if (typeof window !== "undefined" && (window as any).fbq) {
-        (window as any).fbq("track", "CompleteRegistration", { content_name: plan || "free" });
+        (window as any).fbq("track", "CompleteRegistration", { content_name: selectedPlan });
       }
-      toast.success("Conta criada! Bem-vindo ao Portal MEIguia 🎉");
-      router.push(plan === "pro" ? "/assinatura?upgrade=true" : "/dashboard");
+      toast.success("Conta criada! Bem-vindo ao MEIguia 🎉");
+      router.push(selectedPlan === "pro" ? "/assinatura?upgrade=true" : "/dashboard");
       router.refresh();
       return;
     }
 
-    // Se precisar confirmar e-mail
     toast.success("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
     setLoading(false);
   }
 
   async function handleGoogleSignup() {
-    track("signup_started", { method: "google" });
+    track("signup_started", { method: "google", plan: selectedPlan });
     if (typeof window !== "undefined" && (window as any).fbq) {
       (window as any).fbq("track", "InitiateCheckout", { content_name: "google_signup" });
     }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback${selectedPlan === "pro" ? "?plan=pro" : ""}`,
+      },
     });
     if (error) toast.error("Erro ao cadastrar com Google.");
   }
 
+  const isPro = selectedPlan === "pro";
+
   return (
-    <div className="w-full max-w-md">
-      <div className="text-center mb-8">
+    <div className="w-full max-w-lg">
+      {/* Logo */}
+      <div className="text-center mb-6">
         <div className="flex justify-center mb-2">
           <Logo href="/" size="text-3xl" />
         </div>
-        <p className="text-gray-500 mt-3 text-sm">
-          {plan === "pro" ? "Crie sua conta e assine o Pro" : "Crie sua conta gratuita"}
-        </p>
+        <p className="text-gray-500 mt-2 text-sm">Crie sua conta e comece agora</p>
       </div>
 
-      {plan === "pro" && (
-        <div className="bg-petroleo-50 border border-petroleo-200 rounded-xl p-4 mb-6 text-sm text-petroleo-700 text-center">
-          🚀 Após o cadastro você será redirecionado para assinar o plano Pro.
+      {/* ── Seletor de plano ── */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        {/* Free */}
+        <button
+          type="button"
+          onClick={() => setSelectedPlan("free")}
+          className={`relative rounded-xl border-2 p-4 text-left transition-all ${
+            !isPro
+              ? "border-gray-400 bg-white shadow-sm"
+              : "border-gray-200 bg-gray-50 hover:border-gray-300"
+          }`}
+        >
+          {!isPro && (
+            <span className="absolute -top-2.5 left-3 bg-gray-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              SELECIONADO
+            </span>
+          )}
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Gratuito</p>
+          <p className="text-xl font-extrabold text-gray-800">R$ 0</p>
+          <p className="text-xs text-gray-400 mt-0.5">Para começar</p>
+          <ul className="mt-3 space-y-1">
+            {["Até 10 notas/mês", "Dashboard básico"].map((f) => (
+              <li key={f} className="flex items-center gap-1.5 text-xs text-gray-500">
+                <CheckCircle className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                {f}
+              </li>
+            ))}
+            <li className="text-xs text-gray-300 line-through pl-[18px]">Alertas de limite</li>
+            <li className="text-xs text-gray-300 line-through pl-[18px]">Previsão anual</li>
+          </ul>
+        </button>
+
+        {/* Pro */}
+        <button
+          type="button"
+          onClick={() => setSelectedPlan("pro")}
+          className={`relative rounded-xl border-2 p-4 text-left transition-all ${
+            isPro
+              ? "border-brand-500 bg-brand-50 shadow-md shadow-brand-100"
+              : "border-gray-200 bg-white hover:border-brand-300"
+          }`}
+        >
+          <span className="absolute -top-2.5 left-3 bg-brand-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+            {isPro ? "SELECIONADO" : "⭐ RECOMENDADO"}
+          </span>
+          <p className="text-xs font-semibold text-brand-500 uppercase tracking-wide mb-1">Pro</p>
+          <p className="text-xl font-extrabold text-gray-900">
+            R$&nbsp;{PRECO_MENSAL}
+            <span className="text-sm font-normal text-gray-400">/mês</span>
+          </p>
+          <p className="text-xs text-brand-600 font-medium mt-0.5">menos de R$ 0,70/dia</p>
+          <ul className="mt-3 space-y-1">
+            {[
+              "Notas ilimitadas",
+              "Alertas automáticos",
+              "Previsão de estouro",
+              "Exportar para contador",
+            ].map((f) => (
+              <li key={f} className="flex items-center gap-1.5 text-xs text-gray-700">
+                <CheckCircle className={`w-3 h-3 flex-shrink-0 ${isPro ? "text-brand-500" : "text-gray-400"}`} />
+                {f}
+              </li>
+            ))}
+          </ul>
+        </button>
+      </div>
+
+      {/* Banner informativo quando Pro selecionado */}
+      {isPro && (
+        <div className="flex items-start gap-2.5 bg-brand-50 border border-brand-200 rounded-xl px-4 py-3 mb-4 text-sm text-brand-700">
+          <Sparkles className="w-4 h-4 flex-shrink-0 mt-0.5 text-brand-500" />
+          <span>Crie sua conta e você será direcionado para finalizar a assinatura Pro.</span>
         </div>
       )}
 
+      {/* ── Card do formulário ── */}
       <div className="card shadow-lg">
-        <button onClick={handleGoogleSignup}
-          className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-6">
+        <button
+          onClick={handleGoogleSignup}
+          className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition mb-6"
+        >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -134,7 +211,9 @@ function CadastroForm() {
         </button>
 
         <div className="flex items-center gap-3 mb-6">
-          <hr className="flex-1 border-gray-200" /><span className="text-xs text-gray-400">ou</span><hr className="flex-1 border-gray-200" />
+          <hr className="flex-1 border-gray-200" />
+          <span className="text-xs text-gray-400">ou</span>
+          <hr className="flex-1 border-gray-200" />
         </div>
 
         <form onSubmit={handleSignup} className="space-y-4">
@@ -159,16 +238,22 @@ function CadastroForm() {
           <div>
             <label className="label">Senha</label>
             <div className="relative">
-              <input type={showPassword ? "text" : "password"} className="input pr-10"
-                placeholder="Mínimo 8 caracteres" value={password}
-                onChange={(e) => setPassword(e.target.value)} required minLength={8} />
-              <button type="button"
+              <input
+                type={showPassword ? "text" : "password"}
+                className="input pr-10"
+                placeholder="Mínimo 8 caracteres"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required minLength={8}
+              />
+              <button
+                type="button"
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                onClick={() => setShowPassword(!showPassword)}>
+                onClick={() => setShowPassword(!showPassword)}
+              >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            {/* Indicador de força de senha */}
             {password.length > 0 && (() => {
               const forte = password.length >= 12 && /[A-Z]/.test(password) && /[0-9]/.test(password);
               const media = password.length >= 8;
@@ -187,8 +272,13 @@ function CadastroForm() {
               );
             })()}
           </div>
-          <button type="submit" disabled={loading} className="btn-primary w-full">
-            {loading ? "Criando conta..." : "Criar conta grátis"}
+
+          <button type="submit" disabled={loading} className="btn-primary w-full py-3 font-semibold">
+            {loading
+              ? "Criando conta..."
+              : isPro
+              ? "Criar conta e assinar Pro →"
+              : "Criar conta grátis →"}
           </button>
         </form>
 
@@ -208,9 +298,9 @@ function CadastroForm() {
 
 export default function CadastroPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-petroleo-50 via-white to-agua-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-petroleo-50 via-white to-agua-50 flex items-center justify-center p-4 py-10">
       <Suspense fallback={
-        <div className="w-full max-w-md text-center">
+        <div className="w-full max-w-lg text-center">
           <div className="flex justify-center mb-8"><Logo href="/" size="text-3xl" /></div>
           <div className="card shadow-lg h-96 animate-pulse bg-gray-100" />
         </div>
