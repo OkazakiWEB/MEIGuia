@@ -46,7 +46,9 @@ export default async function DashboardPage() {
     supabase.rpc("get_notas_mes_atual", { p_user_id: user.id }),
   ]);
 
-  const isPro = profile?.plano === "pro";
+  const plano = profile?.plano ?? "free";
+  const isPro = plano === "pro" || plano === "premium";
+  const isPremium = plano === "premium";
 
   // Total anual vem do RPC; fallback para .reduce() se a RPC falhar
   const totalAno = totalAnoRpc != null
@@ -198,8 +200,14 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* ── Contador de notas (plano free) ── */}
-      {!isPro && <NotasUsageBar used={qtdNotasMes} />}
+      {/* ── Contador de notas (free e pro têm limite) ── */}
+      {!isPremium && (
+        <NotasUsageBar
+          used={qtdNotasMes}
+          limit={plano === "pro" ? 30 : 5}
+          plano={plano}
+        />
+      )}
 
       {/* ── Empty state: usuário sem notas reais ── */}
       {totalNotasReais === 0 && !temEstimativa && (
@@ -247,7 +255,7 @@ export default async function DashboardPage() {
       )}
 
       {/* ── Card de valor Pro para free users com pouco uso (sem ProGate ainda) ── */}
-      {!isPro && totalNotasReais > 0 && totalNotasReais < 3 && (
+      {plano === "free" && totalNotasReais > 0 && totalNotasReais < 3 && (
         <div className="rounded-xl border border-brand-200 bg-brand-50 p-4 flex items-start gap-3">
           <Sparkles className="w-5 h-5 text-brand-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">

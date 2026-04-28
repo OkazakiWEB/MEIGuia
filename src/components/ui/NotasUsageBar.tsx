@@ -4,19 +4,22 @@ import { Zap } from "lucide-react";
 interface NotasUsageBarProps {
   used: number;
   limit?: number;
+  plano?: string;
 }
 
-const LIMIT = 10;
+const LIMIT = 5;
 
-export function NotasUsageBar({ used, limit = LIMIT }: NotasUsageBarProps) {
+export function NotasUsageBar({ used, limit = LIMIT, plano = "free" }: NotasUsageBarProps) {
   const pct     = Math.min((used / limit) * 100, 100);
   const restam  = Math.max(limit - used, 0);
+  const meio    = Math.floor(limit * 0.5);
+  const alto    = Math.floor(limit * 0.8);
 
   // ── Nível de uso ─────────────────────────────────────────────────
   const nivel =
     used === 0         ? "zero"   :
-    used <= 4          ? "baixo"  :
-    used <= 7          ? "medio"  :
+    used <= meio       ? "baixo"  :
+    used <= alto       ? "medio"  :
     used < limit       ? "alto"   :
                          "cheio";
 
@@ -71,15 +74,19 @@ export function NotasUsageBar({ used, limit = LIMIT }: NotasUsageBarProps) {
         <div className="flex items-center justify-between gap-3 pt-0.5">
           <p className="text-xs text-gray-500">
             {nivel === "cheio"
-              ? "Assine o Pro e registre notas ilimitadas a partir de agora."
-              : "No Pro você registra quantas notas quiser, todo mês."}
+              ? plano === "pro"
+                ? "Assine o Premium e registre notas ilimitadas."
+                : "Assine o Pro (30/mês) ou Premium (ilimitado)."
+              : plano === "pro"
+              ? "No Premium você registra notas ilimitadas todo mês."
+              : `No Pro você registra até 30 notas. No Premium, ilimitado.`}
           </p>
           <Link
             href="/assinatura"
             className="flex items-center gap-1.5 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 transition px-3 py-1.5 rounded-lg whitespace-nowrap flex-shrink-0"
           >
             <Zap className="w-3 h-3" />
-            Ver Pro
+            {plano === "pro" ? "Ver Premium" : "Ver planos"}
           </Link>
         </div>
       )}

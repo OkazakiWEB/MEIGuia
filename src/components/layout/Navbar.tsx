@@ -25,12 +25,14 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isFree = profile?.plano !== "pro";
-  // Cor do contador baseada na proximidade do limite
+  const plano = profile?.plano ?? "free";
+  const isFree = plano === "free";
+  const isPremium = plano === "premium";
+  const notasLimit = plano === "pro" ? 30 : 5;
   const counterColor =
-    notasMes >= 10 ? "text-red-400 font-bold" :
-    notasMes >= 8  ? "text-amber-400 font-semibold" :
-    notasMes >= 6  ? "text-yellow-400" :
+    notasMes >= notasLimit     ? "text-red-400 font-bold" :
+    notasMes >= notasLimit * 0.8 ? "text-amber-400 font-semibold" :
+    notasMes >= notasLimit * 0.6 ? "text-yellow-400" :
     "text-petroleo-300";
 
   async function handleLogout() {
@@ -58,10 +60,10 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
           <Icon className="w-4 h-4 flex-shrink-0" />
           {label}
         </span>
-        {/* Contador de notas apenas para plano free */}
-        {isNotas && isFree && (
+        {/* Contador de notas para free e pro */}
+        {isNotas && !isPremium && (
           <span className={cn("text-xs tabular-nums", counterColor)}>
-            {notasMes}/10
+            {notasMes}/{notasLimit}
           </span>
         )}
       </Link>
@@ -81,11 +83,13 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
         {profile && (
           <div className="px-4 pt-4">
             <span className={
-              profile.plano === "pro"
+              plano === "premium"
+                ? "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500 text-white"
+                : plano === "pro"
                 ? "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-agua-500 text-white"
                 : "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-petroleo-700 text-petroleo-200"
             }>
-              {profile.plano === "pro" ? "✨ Plano Pro" : "Plano Gratuito"}
+              {plano === "premium" ? "⭐ Plano Premium" : plano === "pro" ? "✨ Plano Pro" : "Plano Gratuito"}
             </span>
           </div>
         )}
@@ -97,8 +101,8 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
           ))}
         </nav>
 
-        {/* Upgrade CTA — sempre visível para free, urgência aumenta com uso */}
-        {isFree && (
+        {/* Upgrade CTA — free e pro veem (premium não precisa) */}
+        {!isPremium && (
           <div className={cn(
             "mx-3 mb-3 rounded-xl p-3 border",
             notasMes >= 10
@@ -108,11 +112,13 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
               : "bg-petroleo-800/60 border-petroleo-700"
           )}>
             <p className="text-xs text-petroleo-200 mb-2 leading-snug">
-              {notasMes >= 10
+              {notasMes >= notasLimit
                 ? "Limite atingido este mês."
-                : notasMes >= 6
-                ? `Você usou ${notasMes}/10 notas este mês.`
-                : "Alertas, previsão e notas ilimitadas no Pro."}
+                : notasMes >= notasLimit * 0.6
+                ? `Você usou ${notasMes}/${notasLimit} notas este mês.`
+                : isFree
+                ? "Alertas, previsão e mais notas no Pro."
+                : "WhatsApp, DAS e NF no Premium."}
             </p>
             <Link
               href="/assinatura"
@@ -124,7 +130,9 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
               )}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              {notasMes >= 10 ? "Desbloqueie o Pro" : "Fazer upgrade"}
+              {notasMes >= notasLimit
+                ? isFree ? "Upgrade para Pro" : "Upgrade para Premium"
+                : isFree ? "Fazer upgrade" : "Ver Premium"}
             </Link>
           </div>
         )}
@@ -171,9 +179,9 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
         <LogoInline href="/dashboard" className="[&_.font-portal]:text-petroleo-300 [&_.text-petroleo-700]:text-white [&_.text-agua-500]:text-agua-400" />
         <div className="flex items-center gap-2">
           {/* Contador compacto no mobile */}
-          {isFree && (
+          {!isPremium && (
             <span className={cn("text-xs tabular-nums", counterColor)}>
-              {notasMes}/10
+              {notasMes}/{notasLimit}
             </span>
           )}
           <button
@@ -212,8 +220,8 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
               Configurações
             </Link>
 
-            {/* Banner upgrade mobile — sempre visível para free */}
-            {isFree && (
+            {/* Banner upgrade mobile */}
+            {!isPremium && (
               <Link
                 href="/assinatura"
                 onClick={() => setMobileOpen(false)}
@@ -225,9 +233,7 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
                 )}
               >
                 <Sparkles className="w-4 h-4" />
-                {notasMes >= 10
-                  ? "Limite atingido — Fazer upgrade"
-                  : "Fazer upgrade para Pro — R$ 19,90/mês"}
+                {isFree ? "Fazer upgrade para Pro — R$ 24,90/mês" : "Fazer upgrade para Premium — R$ 49,90/mês"}
               </Link>
             )}
 

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { stripe, STRIPE_PRO_PRICE_ID } from "@/lib/stripe";
-
-const STRIPE_PRO_ANNUAL_PRICE_ID = process.env.STRIPE_PRO_ANNUAL_PRICE_ID ?? "";
+import {
+  stripe,
+  STRIPE_PRO_PRICE_ID, STRIPE_PRO_ANNUAL_PRICE_ID,
+  STRIPE_PREMIUM_PRICE_ID, STRIPE_PREMIUM_ANNUAL_PRICE_ID,
+} from "@/lib/stripe";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 /**
@@ -32,6 +34,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
     const interval: "monthly" | "annual" = body?.interval === "annual" ? "annual" : "monthly";
+    const plan: "pro" | "premium" = body?.plan === "premium" ? "premium" : "pro";
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -40,40 +43,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    // Buscar perfil do usuário para verificar se já tem customer no Stripe
     const { data: profile } = await supabase
       .from("profiles")
       .select("stripe_customer_id, plano")
       .eq("id", user.id)
       .single();
 
-    if (profile?.plano === "pro") {
-      return NextResponse.json({ error: "Você já tem o plano Pro" }, { status: 400 });
+    // Bloquear upgrade desnecessário
+    if (profile?.plano === plan || (profile?.plano === "premium" && plan === "pro")) {
+      return NextResponse.json({ error: `Você já tem o plano ${plan}` }, { status: 400 });
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-    // Reusar customer existente ou criar um novo
     let customerId = profile?.stripe_customer_id;
-
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email!,
         metadata: { supabase_user_id: user.id },
       });
       customerId = customer.id;
-
-      // Salvar customer ID no perfil
-      await supabase
-        .from("profiles")
-        .update({ stripe_customer_id: customerId })
-        .eq("id", user.id);
+      await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", user.id);
     }
 
-    // Selecionar price ID conforme o intervalo
-    const priceId = interval === "annual" && STRIPE_PRO_ANNUAL_PRICE_ID
-      ? STRIPE_PRO_ANNUAL_PRICE_ID
-      : STRIPE_PRO_PRICE_ID;
+    // Selecionar price ID conforme plano e intervalo
+    const priceId =
+      plan === "premium"
+        ? (interval === "annual" && STRIPE_PREMIUM_ANNUAL_PRICE_ID ? STRIPE_PREMIUM_ANNUAL_PRICE_ID : STRIPE_PREMIUM_PRICE_ID)
+        : (interval === "annual" && STRIPE_PRO_ANNUAL_PRICE_ID ? STRIPE_PRO_ANNUAL_PRICE_ID : STRIPE_PRO_PRICE_ID);
 
     // Criar sessão de Checkout
     const session = await stripe.checkout.sessions.create({

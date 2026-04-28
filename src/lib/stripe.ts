@@ -12,5 +12,18 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 /** Limite anual MEI em reais */
 export const MEI_LIMITE_ANUAL = 81_000;
 
-/** ID do preço Pro no Stripe (configurado via env) */
-export const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID!;
+/** IDs de preço no Stripe */
+export const STRIPE_PRO_PRICE_ID            = process.env.STRIPE_PRO_PRICE_ID!;
+export const STRIPE_PRO_ANNUAL_PRICE_ID     = process.env.STRIPE_PRO_ANNUAL_PRICE_ID ?? "";
+export const STRIPE_PREMIUM_PRICE_ID        = process.env.STRIPE_PREMIUM_PRICE_ID!;
+export const STRIPE_PREMIUM_ANNUAL_PRICE_ID = process.env.STRIPE_PREMIUM_ANNUAL_PRICE_ID ?? "";
+
+/** Set com todos os price IDs Premium para lookup rápido */
+export const PREMIUM_PRICE_IDS = new Set(
+  [process.env.STRIPE_PREMIUM_PRICE_ID, process.env.STRIPE_PREMIUM_ANNUAL_PRICE_ID].filter(Boolean)
+);
+
+/** Resolve o plano a partir do price ID da assinatura Stripe */
+export function planFromPriceId(priceId: string): "pro" | "premium" {
+  return PREMIUM_PRICE_IDS.has(priceId) ? "premium" : "pro";
+}

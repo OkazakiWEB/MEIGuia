@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { stripe } from "@/lib/stripe";
+import { stripe, planFromPriceId } from "@/lib/stripe";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import type Stripe from "stripe";
 
@@ -72,11 +72,13 @@ export async function POST(request: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription;
         const customerId = subscription.customer as string;
         const isActive = subscription.status === "active" || subscription.status === "trialing";
+        const priceId = subscription.items.data[0]?.price?.id ?? "";
+        const plano = isActive ? planFromPriceId(priceId) : "free";
 
         await updateProfile(
           customerId,
           {
-            plano: isActive ? "pro" : "free",
+            plano,
             stripe_subscription_id: subscription.id,
             subscription_status: subscription.status,
             pro_expires_at: isActive
@@ -109,10 +111,12 @@ export async function POST(request: NextRequest) {
       case "invoice.paid": {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;
+        const priceId = invoice.lines?.data[0]?.price?.id ?? "";
+        const plano = planFromPriceId(priceId);
 
         await updateProfile(
           customerId,
-          { plano: "pro", subscription_status: "active" },
+          { plano, subscription_status: "active" },
           "invoice.paid"
         );
         break;
