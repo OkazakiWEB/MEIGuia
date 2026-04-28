@@ -29,11 +29,10 @@ const DAS_URL = "https://www8.receita.fazenda.gov.br/SimplesNacional/Aplicacoes/
 
 function abrirDas(cnpj: string) {
   navigator.clipboard.writeText(formatCnpj(cnpj)).catch(() => {});
-  window.open(DAS_URL, "_blank", "noopener,noreferrer");
-  toast("CNPJ copiado! Cole no campo do portal Gov.br.", {
-    icon: "📋",
-    duration: 5000,
-  });
+  toast("📋 CNPJ copiado! Abrindo portal em 2 segundos...", { duration: 2000 });
+  setTimeout(() => {
+    window.open(DAS_URL, "_blank", "noopener,noreferrer");
+  }, 2000);
 }
 
 function calcStatus(mes: number, ano: number, pago: boolean): "pago" | "atrasado" | "pendente" | "futuro" {
