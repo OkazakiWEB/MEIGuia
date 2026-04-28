@@ -16,8 +16,8 @@ function CadastroForm() {
   const planParam = searchParams.get("plan");
 
   // Plano selecionado: começa com o que veio na URL (ou "free" por padrão)
-  const [selectedPlan, setSelectedPlan] = useState<"free" | "pro">(
-    planParam === "pro" ? "pro" : "free"
+  const [selectedPlan, setSelectedPlan] = useState<"free" | "pro" | "premium">(
+    planParam === "premium" ? "premium" : planParam === "pro" ? "pro" : "free"
   );
 
   const [fullName, setFullName] = useState("");
@@ -84,7 +84,7 @@ function CadastroForm() {
         (window as any).fbq("track", "CompleteRegistration", { content_name: selectedPlan });
       }
       toast.success("Conta criada! Bem-vindo ao MEIguia 🎉");
-      router.push(selectedPlan === "pro" ? "/assinatura?upgrade=true" : "/dashboard");
+      router.push(selectedPlan !== "free" ? "/assinatura?upgrade=true" : "/dashboard");
       router.refresh();
       return;
     }
@@ -101,13 +101,14 @@ function CadastroForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback${selectedPlan === "pro" ? "?plan=pro" : ""}`,
+        redirectTo: `${window.location.origin}/auth/callback${selectedPlan !== "free" ? `?plan=${selectedPlan}` : ""}`,
       },
     });
     if (error) toast.error("Erro ao cadastrar com Google.");
   }
 
   const isPro = selectedPlan === "pro";
+  const isPremium = selectedPlan === "premium";
 
   return (
     <div className="w-full max-w-lg">
@@ -198,34 +199,32 @@ function CadastroForm() {
           </div>
 
           {/* ── Seletor de plano ── */}
-          <div className="grid grid-cols-2 gap-3 pt-2">
+          <div className="grid grid-cols-3 gap-2 pt-2">
             {/* Free */}
             <button
               type="button"
               onClick={() => setSelectedPlan("free")}
-              className={`relative rounded-xl border-2 p-4 text-left transition-all ${
-                !isPro
+              className={`relative rounded-xl border-2 p-3 text-left transition-all ${
+                selectedPlan === "free"
                   ? "border-gray-400 bg-white shadow-sm"
                   : "border-gray-200 bg-gray-50 hover:border-gray-300"
               }`}
             >
-              {!isPro && (
-                <span className="absolute -top-2.5 left-3 bg-gray-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              {selectedPlan === "free" && (
+                <span className="absolute -top-2.5 left-2 bg-gray-700 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
                   SELECIONADO
                 </span>
               )}
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Gratuito</p>
-              <p className="text-xl font-extrabold text-gray-800">R$ 0</p>
-              <p className="text-xs text-gray-400 mt-0.5">Para começar</p>
-              <ul className="mt-3 space-y-1">
-                {["Até 10 notas/mês", "Dashboard básico"].map((f) => (
-                  <li key={f} className="flex items-center gap-1.5 text-xs text-gray-500">
-                    <CheckCircle className="w-3 h-3 text-gray-400 flex-shrink-0" />
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Gratuito</p>
+              <p className="text-lg font-extrabold text-gray-800">R$ 0</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">Para começar</p>
+              <ul className="mt-2 space-y-1">
+                {["5 notas/mês", "Dashboard básico"].map((f) => (
+                  <li key={f} className="flex items-center gap-1 text-[10px] text-gray-500">
+                    <CheckCircle className="w-2.5 h-2.5 text-gray-400 flex-shrink-0" />
                     {f}
                   </li>
                 ))}
-                <li className="text-xs text-gray-300 line-through pl-[18px]">Alertas de limite</li>
-                <li className="text-xs text-gray-300 line-through pl-[18px]">Previsão anual</li>
               </ul>
             </button>
 
@@ -233,30 +232,54 @@ function CadastroForm() {
             <button
               type="button"
               onClick={() => setSelectedPlan("pro")}
-              className={`relative rounded-xl border-2 p-4 text-left transition-all ${
+              className={`relative rounded-xl border-2 p-3 text-left transition-all ${
                 isPro
                   ? "border-brand-500 bg-brand-50 shadow-md shadow-brand-100"
                   : "border-gray-200 bg-white hover:border-brand-300"
               }`}
             >
-              <span className="absolute -top-2.5 left-3 bg-brand-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
-                {isPro ? "SELECIONADO" : "⭐ RECOMENDADO"}
+              <span className="absolute -top-2.5 left-2 bg-brand-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                {isPro ? "SELECIONADO" : "⭐ POPULAR"}
               </span>
-              <p className="text-xs font-semibold text-brand-500 uppercase tracking-wide mb-1">Pro</p>
-              <p className="text-xl font-extrabold text-gray-900">
-                R$&nbsp;19,90
-                <span className="text-sm font-normal text-gray-400">/mês</span>
+              <p className="text-[10px] font-semibold text-brand-500 uppercase tracking-wide mb-1">Pro</p>
+              <p className="text-lg font-extrabold text-gray-900">
+                R$&nbsp;24,90
+                <span className="text-[10px] font-normal text-gray-400">/mês</span>
               </p>
-              <p className="text-xs text-brand-600 font-medium mt-0.5">menos de R$ 0,70/dia</p>
-              <ul className="mt-3 space-y-1">
-                {[
-                  "Notas ilimitadas",
-                  "Alertas automáticos",
-                  "Previsão de estouro",
-                  "Exportar para contador",
-                ].map((f) => (
-                  <li key={f} className="flex items-center gap-1.5 text-xs text-gray-700">
-                    <CheckCircle className={`w-3 h-3 flex-shrink-0 ${isPro ? "text-brand-500" : "text-gray-400"}`} />
+              <p className="text-[10px] text-brand-600 font-medium mt-0.5">30 notas/mês</p>
+              <ul className="mt-2 space-y-1">
+                {["Alertas automáticos", "Previsão anual", "Exportar relatório"].map((f) => (
+                  <li key={f} className="flex items-center gap-1 text-[10px] text-gray-700">
+                    <CheckCircle className={`w-2.5 h-2.5 flex-shrink-0 ${isPro ? "text-brand-500" : "text-gray-400"}`} />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </button>
+
+            {/* Premium */}
+            <button
+              type="button"
+              onClick={() => setSelectedPlan("premium")}
+              className={`relative rounded-xl border-2 p-3 text-left transition-all ${
+                isPremium
+                  ? "border-purple-500 bg-purple-50 shadow-md shadow-purple-100"
+                  : "border-gray-200 bg-white hover:border-purple-300"
+              }`}
+            >
+              <span className="absolute -top-2.5 left-2 bg-purple-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                {isPremium ? "SELECIONADO" : "🚀 COMPLETO"}
+              </span>
+              <p className="text-[10px] font-semibold text-purple-500 uppercase tracking-wide mb-1">Premium</p>
+              <p className="text-lg font-extrabold text-gray-900">
+                R$&nbsp;49,90
+                <span className="text-[10px] font-normal text-gray-400">/mês</span>
+              </p>
+              <p className="text-[10px] text-purple-600 font-medium mt-0.5">Ilimitado</p>
+              <ul className="mt-2 space-y-1">
+                {["WhatsApp alertas", "Emissão de DAS", "NF (em breve)"].map((f) => (
+                  <li key={f} className="flex items-center gap-1 text-[10px] text-gray-700">
+                    <CheckCircle className={`w-2.5 h-2.5 flex-shrink-0 ${isPremium ? "text-purple-500" : "text-gray-400"}`} />
                     {f}
                   </li>
                 ))}
@@ -264,8 +287,8 @@ function CadastroForm() {
             </button>
           </div>
 
-          {isPro && (
-            <p className="text-xs text-brand-600 text-center -mt-1">
+          {selectedPlan !== "free" && (
+            <p className={`text-xs text-center -mt-1 ${isPremium ? "text-purple-600" : "text-brand-600"}`}>
               Você será direcionado para o pagamento após criar a conta.
             </p>
           )}
@@ -273,6 +296,8 @@ function CadastroForm() {
           <button type="submit" disabled={loading} className="btn-primary w-full py-3 font-semibold">
             {loading
               ? "Criando conta..."
+              : isPremium
+              ? "Criar conta e assinar Premium →"
               : isPro
               ? "Criar conta e assinar Pro →"
               : "Criar conta grátis →"}
