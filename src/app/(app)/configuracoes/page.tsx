@@ -22,7 +22,7 @@ export default function ConfiguracoesPage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [loading, setLoading]             = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
-  const [isPro, setIsPro]                 = useState(false);
+  const [plano, setPlano]                 = useState<string>("free");
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -63,7 +63,7 @@ export default function ConfiguracoesPage() {
 
       setFullName(profile?.full_name || "");
       setEmail(profile?.email || user.email || "");
-      setIsPro(profile?.plano === "pro");
+      setPlano(profile?.plano ?? "free");
       setSubscriptionStatus(profile?.subscription_status || null);
       setAvatarUrl(profile?.avatar_url || null);
       setCnpj(profile?.cnpj ? formatCnpj(profile.cnpj) : "");
@@ -161,7 +161,9 @@ export default function ConfiguracoesPage() {
     }
   }
 
-  const initials = fullName?.trim().split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "?";
+  const isPro     = plano === "pro" || plano === "premium";
+  const isPremium = plano === "premium";
+  const initials  = fullName?.trim().split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "?";
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -282,12 +284,34 @@ export default function ConfiguracoesPage() {
         </h2>
         {loadingProfile ? (
           <div className="h-16 bg-gray-100 rounded-lg animate-pulse" />
+        ) : isPremium ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-3 bg-purple-50 border border-purple-200 rounded-xl">
+              <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-purple-800">Plano Premium ativo ⭐</p>
+                <p className="text-xs text-purple-600">
+                  {subscriptionStatus === "active" ? "Renovação automática ativa" :
+                   subscriptionStatus === "past_due" ? "Pagamento pendente — verifique seu cartão" :
+                   "Cancelamento agendado — acesso até o fim do período"}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handlePortal}
+              disabled={portalLoading}
+              className="btn-secondary flex items-center gap-2 text-sm"
+            >
+              {portalLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+              Gerenciar assinatura
+            </button>
+          </div>
         ) : isPro ? (
           <div className="space-y-4">
             <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-xl">
               <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-green-800">Plano Pro ativo</p>
+                <p className="text-sm font-semibold text-green-800">Plano Pro ativo ✨</p>
                 <p className="text-xs text-green-600">
                   {subscriptionStatus === "active" ? "Renovação automática ativa" :
                    subscriptionStatus === "past_due" ? "Pagamento pendente — verifique seu cartão" :
@@ -310,7 +334,7 @@ export default function ConfiguracoesPage() {
               <XCircle className="w-5 h-5 text-gray-400 flex-shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-gray-700">Plano Gratuito</p>
-                <p className="text-xs text-gray-500">Limite de 10 notas por mês</p>
+                <p className="text-xs text-gray-500">Limite de 5 notas por mês</p>
               </div>
             </div>
             <button
@@ -318,11 +342,8 @@ export default function ConfiguracoesPage() {
               disabled={checkoutLoading}
               className="btn-primary flex items-center gap-2 text-sm"
             >
-              {checkoutLoading
-                ? <Loader2 className="w-4 h-4 animate-spin" />
-                : <Sparkles className="w-4 h-4" />
-              }
-              Assinar Pro — R$ 19,90/mês
+              {checkoutLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              Ver planos
             </button>
           </div>
         )}
