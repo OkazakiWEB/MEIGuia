@@ -293,9 +293,9 @@ export default function HomePage() {
 
           <div className={styles.statsRow} data-reveal>
             {[
-              { icon: <IcoUser />,   num: "3.200+",   label: "MEIs ativos" },
-              { icon: <IcoBell />,   num: "12.000+",  label: "Alertas enviados" },
-              { icon: <IcoShield />, num: "R$ 420M+", label: "Faturamento monitorado" },
+              { icon: <IcoUser />,   num: "500+",    label: "MEIs protegidos" },
+              { icon: <IcoBell />,   num: "2.000+",  label: "Alertas enviados" },
+              { icon: <IcoShield />, num: "R$ 20M+", label: "Faturamento monitorado" },
             ].map((s, i) => (
               <div key={i} className={styles.statCell}>
                 <div className={styles.statCellIconWrap}>{s.icon}</div>
@@ -316,7 +316,7 @@ export default function HomePage() {
               <div>
                 <h2 className={styles.ctaBannerTitle}>Pronto para ter seu MEI sob controle?</h2>
                 <p className={styles.ctaBannerSub}>
-                  Junte-se a mais de 3.200 MEIs que não se preocupam mais com limite.
+                  Junte-se a mais de 500 MEIs que não se preocupam mais com limite.
                 </p>
               </div>
             </div>

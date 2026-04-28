@@ -125,6 +125,7 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
   const [lista, setLista] = useState<DasPagamento[]>(pagamentos);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [modal, setModal] = useState<{ mes: number; competencia: string } | null>(null);
+  const [confirmarDesfazer, setConfirmarDesfazer] = useState<string | null>(null); // id do registro
 
   // Monta os 12 meses com dados do banco ou defaults
   const meses = Array.from({ length: 12 }, (_, i) => {
@@ -182,10 +183,13 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
     setLoadingId(null);
   }
 
+  const [cnpjCopiado, setCnpjCopiado] = useState(false);
+
   function copiarCnpj() {
     if (!cnpj) return;
     navigator.clipboard.writeText(formatCnpj(cnpj));
-    toast.success("CNPJ copiado!");
+    setCnpjCopiado(true);
+    setTimeout(() => setCnpjCopiado(false), 2000);
   }
 
   // ── Sem CNPJ cadastrado ──
@@ -248,10 +252,14 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
         </div>
         <button
           onClick={copiarCnpj}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors"
+          className={`flex items-center gap-2 text-sm border rounded-lg px-3 py-2 transition-colors ${
+            cnpjCopiado
+              ? "bg-green-50 border-green-200 text-green-700"
+              : "text-gray-500 hover:text-gray-800 border-gray-200 hover:bg-gray-50"
+          }`}
         >
           <Copy className="w-4 h-4" />
-          Copiar
+          {cnpjCopiado ? "Copiado ✓" : "Copiar"}
         </button>
       </div>
 
@@ -374,14 +382,32 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
                       {loadingId === competencia ? "..." : "Paguei"}
                     </button>
                   ) : (
-                    <button
-                      onClick={() => registro && desmarcarPago(registro.id)}
-                      disabled={loadingId === registro?.id}
-                      className="text-xs text-gray-400 hover:text-red-500 transition-colors px-2 py-1.5"
-                      title="Desfazer pagamento"
-                    >
-                      {loadingId === registro?.id ? "..." : "Desfazer"}
-                    </button>
+                    confirmarDesfazer === registro?.id ? (
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-gray-500">Tem certeza?</span>
+                        <button
+                          onClick={() => { registro && desmarcarPago(registro.id); setConfirmarDesfazer(null); }}
+                          disabled={loadingId === registro?.id}
+                          className="text-xs text-red-600 font-medium px-2 py-1 hover:underline"
+                        >
+                          Sim
+                        </button>
+                        <button
+                          onClick={() => setConfirmarDesfazer(null)}
+                          className="text-xs text-gray-400 px-2 py-1 hover:underline"
+                        >
+                          Não
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => registro && setConfirmarDesfazer(registro.id)}
+                        disabled={loadingId === registro?.id}
+                        className="text-xs text-gray-400 hover:text-red-500 transition-colors px-2 py-1.5"
+                      >
+                        {loadingId === registro?.id ? "..." : "Desfazer"}
+                      </button>
+                    )
                   )}
                 </div>
               </div>

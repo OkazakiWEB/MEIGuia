@@ -171,14 +171,14 @@ export function NotaForm({ userId, isPro, nota }: NotaFormProps) {
             type="text"
             inputMode="decimal"
             className="input pl-9"
-            placeholder="0,00"
+            placeholder="Ex: 1.500,00"
             value={form.valor}
             onChange={handleChange}
             required
             autoFocus={!isEditing}
           />
         </div>
-        <p className="text-xs text-gray-400 mt-1">Digite o valor que você vai receber ou já recebeu por esse serviço.</p>
+        <p className="text-xs text-gray-400 mt-1">Valor total recebido pelo serviço ou venda. Ex: se recebeu R$ 1.500, digite <strong>1500</strong>.</p>
       </div>
 
       {/* Data */}

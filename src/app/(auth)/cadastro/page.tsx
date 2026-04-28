@@ -168,6 +168,24 @@ function CadastroForm() {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            {/* Indicador de força de senha */}
+            {password.length > 0 && (() => {
+              const forte = password.length >= 12 && /[A-Z]/.test(password) && /[0-9]/.test(password);
+              const media = password.length >= 8;
+              const nivel = forte ? "forte" : media ? "média" : "fraca";
+              const cor = forte ? "bg-green-500" : media ? "bg-yellow-400" : "bg-red-400";
+              const largura = forte ? "w-full" : media ? "w-2/3" : "w-1/3";
+              return (
+                <div className="mt-1.5 space-y-1">
+                  <div className="w-full bg-gray-100 rounded-full h-1.5">
+                    <div className={`h-1.5 rounded-full transition-all duration-300 ${cor} ${largura}`} />
+                  </div>
+                  <p className={`text-xs ${forte ? "text-green-600" : media ? "text-yellow-600" : "text-red-500"}`}>
+                    Senha {nivel}{!forte && " — use letras maiúsculas e números para fortalecer"}
+                  </p>
+                </div>
+              );
+            })()}
           </div>
           <button type="submit" disabled={loading} className="btn-primary w-full">
             {loading ? "Criando conta..." : "Criar conta grátis"}

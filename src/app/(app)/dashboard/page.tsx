@@ -169,23 +169,21 @@ export default async function DashboardPage() {
             </Link>
           </div>
 
-          {/* Exemplo visual de como ficará o dashboard com dados */}
-          <div className="border-t border-dashed border-gray-200 pt-5 mt-2">
-            <p className="text-xs text-center text-gray-400 mb-4 font-medium uppercase tracking-wide">
-              Assim que você registrar notas, verá:
+          {/* Próximos passos guiados */}
+          <div className="border-t border-dashed border-gray-200 pt-5 mt-2 space-y-2">
+            <p className="text-xs text-center text-gray-400 mb-3 font-medium uppercase tracking-wide">
+              O que você pode fazer agora
             </p>
-            <div className="grid grid-cols-3 gap-3 opacity-40 pointer-events-none select-none">
-              {[
-                { label: "Faturamento do mês", value: "R$ 4.500" },
-                { label: "Total no ano", value: "R$ 32.000" },
-                { label: "Disponível", value: "R$ 49.000" },
-              ].map(({ label, value }) => (
-                <div key={label} className="bg-white rounded-xl p-3 text-center shadow-sm">
-                  <p className="text-xs text-gray-400 mb-1">{label}</p>
-                  <p className="text-sm font-bold text-gray-700">{value}</p>
-                </div>
-              ))}
-            </div>
+            {[
+              { icon: "📝", text: "Registre um serviço que você prestou recentemente" },
+              { icon: "📅", text: "Adicione serviços dos últimos meses para ter o histórico completo" },
+              { icon: "🔔", text: "O sistema avisa automaticamente quando você se aproximar do limite" },
+            ].map((item) => (
+              <div key={item.text} className="flex items-start gap-3 text-left">
+                <span className="text-base">{item.icon}</span>
+                <p className="text-xs text-gray-500">{item.text}</p>
+              </div>
+            ))}
           </div>
         </div>
       )}
