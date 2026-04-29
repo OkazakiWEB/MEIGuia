@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import {
   Settings, User, LogOut, Trash2, AlertTriangle, Loader2,
-  Camera, CreditCard, CheckCircle, XCircle, Sparkles,
+  Camera, CreditCard, CheckCircle, XCircle, Sparkles, Phone,
 } from "lucide-react";
 import { ContadorAccess } from "@/components/ui/ContadorAccess";
 
@@ -26,9 +26,18 @@ export default function ConfiguracoesPage() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [whatsappPhone, setWhatsappPhone] = useState("");
+  const [savingPhone, setSavingPhone]     = useState(false);
   const [deleteModal, setDeleteModal]     = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting]           = useState(false);
+
+  function formatPhone(value: string) {
+    const d = value.replace(/\D/g, "").slice(0, 11);
+    if (d.length <= 2)  return d;
+    if (d.length <= 7)  return `(${d.slice(0,2)}) ${d.slice(2)}`;
+    return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+  }
 
   function formatCnpj(value: string) {
     const digits = value.replace(/\D/g, "").slice(0, 14);
@@ -57,9 +66,9 @@ export default function ConfiguracoesPage() {
       setUserId(user.id);
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, email, plano, subscription_status, avatar_url, cnpj")
+        .select("full_name, email, plano, subscription_status, avatar_url, cnpj, whatsapp_phone")
         .eq("id", user.id)
-        .single<{ full_name: string | null; email: string | null; plano: string | null; subscription_status: string | null; avatar_url: string | null; cnpj: string | null }>();
+        .single<{ full_name: string | null; email: string | null; plano: string | null; subscription_status: string | null; avatar_url: string | null; cnpj: string | null; whatsapp_phone: string | null }>();
 
       setFullName(profile?.full_name || "");
       setEmail(profile?.email || user.email || "");
@@ -67,6 +76,7 @@ export default function ConfiguracoesPage() {
       setSubscriptionStatus(profile?.subscription_status || null);
       setAvatarUrl(profile?.avatar_url || null);
       setCnpj(profile?.cnpj ? formatCnpj(profile.cnpj) : "");
+      setWhatsappPhone(profile?.whatsapp_phone ? formatPhone(profile.whatsapp_phone) : "");
       setLoadingProfile(false);
     }
     load();
@@ -107,6 +117,18 @@ export default function ConfiguracoesPage() {
     if (error) toast.error("Erro ao atualizar nome.");
     else toast.success("Nome atualizado!");
     setLoading(false);
+  }
+
+  async function handleSavePhone() {
+    if (!userId) return;
+    const digits = whatsappPhone.replace(/\D/g, "");
+    if (digits.length < 10) { toast.error("Informe um celular válido com DDD."); return; }
+    setSavingPhone(true);
+    const supabase = createClient();
+    const { error } = await supabase.from("profiles").update({ whatsapp_phone: digits }).eq("id", userId);
+    if (error) toast.error("Erro ao salvar celular.");
+    else toast.success("Celular atualizado! Alertas serão enviados para esse número.");
+    setSavingPhone(false);
   }
 
   async function handlePortal() {
@@ -273,6 +295,39 @@ export default function ConfiguracoesPage() {
               </div>
               <p className="text-xs text-gray-400 mt-1">Necessário para gerar sua Guia DAS.</p>
             </div>
+
+            {/* WhatsApp — apenas Premium */}
+            {isPremium && (
+              <div className="border-t border-gray-100 pt-5 mt-1">
+                <label className="label flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-purple-500" />
+                  Celular para alertas via WhatsApp
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="tel"
+                    className="input"
+                    placeholder="(11) 99999-9999"
+                    value={whatsappPhone}
+                    onChange={(e) => setWhatsappPhone(formatPhone(e.target.value))}
+                    inputMode="numeric"
+                    maxLength={15}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSavePhone}
+                    disabled={savingPhone}
+                    className="btn-secondary text-sm whitespace-nowrap flex items-center gap-1.5"
+                  >
+                    {savingPhone ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                    Salvar
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  Você receberá alertas quando se aproximar do limite anual de R$ 81.000.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
