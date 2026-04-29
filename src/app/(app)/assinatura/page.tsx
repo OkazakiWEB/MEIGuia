@@ -496,57 +496,8 @@ function AssinaturaContent() {
         <span className="text-xs text-gray-400 flex items-center gap-1.5"><ShieldCheck className="w-3 h-3" /> Seus dados protegidos</span>
       </div>
 
-      {/* ── Features Pro ── */}
-      <div className="card space-y-4">
-        <h3 className="font-bold text-gray-900">O que você ganha com o Pro</h3>
-        <div className="space-y-3">
-          {PRO_FEATURES.map(({ icon: Icon, headline, sub }) => (
-            <div key={headline} className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-brand-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon className="w-4 h-4 text-brand-600" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-800">{headline}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Features Premium ── */}
-      <div className="card border-purple-100 space-y-4">
-        <h3 className="font-bold text-gray-900">Exclusivo do Premium</h3>
-        <div className="space-y-3">
-          {PREMIUM_FEATURES.map(({ icon: Icon, headline, sub }) => (
-            <div key={headline} className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Icon className="w-4 h-4 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-800">{headline}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── FAQ ── */}
-      <div className="card space-y-4">
-        <h3 className="font-bold text-gray-900 text-sm">Perguntas frequentes</h3>
-        {[
-          { q: "Posso cancelar a qualquer momento?",    a: "Sim. Sem multa, sem burocracia. Você cancela em um clique e mantém o acesso até o fim do período pago." },
-          { q: "Como funciona a cobrança?",              a: "Todo mês (ou uma vez por ano) é cobrado no cartão via Stripe. Você recebe o comprovante no e-mail." },
-          { q: "Vale a pena para quem fatura pouco?",   a: "Principalmente para quem fatura pouco — é quando o crescimento pega de surpresa. Saber quanto falta para o limite evita o susto no fim do ano." },
-          { q: "Meus dados ficam seguros?",              a: "Sim. Banco de dados com criptografia e isolamento total. Só você acessa seus registros." },
-        ].map(({ q, a }) => (
-          <div key={q} className="border-b border-gray-50 last:border-0 pb-3 last:pb-0">
-            <p className="font-semibold text-gray-900 text-sm">{q}</p>
-            <p className="text-gray-500 text-sm mt-1">{a}</p>
-          </div>
-        ))}
-      </div>
+      {/* ── FAQ accordion ── */}
+      <FaqAccordion />
 
       {/* ── CTA final ── */}
       <div className="grid sm:grid-cols-2 gap-4 pb-6">
@@ -576,6 +527,42 @@ function AssinaturaContent() {
         </div>
       </div>
 
+    </div>
+  );
+}
+
+const FAQ_ITEMS = [
+  { q: "Posso cancelar a qualquer momento?",   a: "Sim. Sem multa, sem burocracia. Você cancela em um clique e mantém o acesso até o fim do período pago." },
+  { q: "Como funciona a cobrança?",             a: "Todo mês (ou uma vez por ano) é cobrado no cartão via Stripe. Você recebe o comprovante no e-mail." },
+  { q: "Vale a pena para quem fatura pouco?",  a: "Principalmente para quem fatura pouco — é quando o crescimento pega de surpresa. Saber quanto falta para o limite evita o susto no fim do ano." },
+  { q: "Meus dados ficam seguros?",             a: "Sim. Banco de dados com criptografia e isolamento total. Só você acessa seus registros." },
+  { q: "Posso mudar de plano depois?",          a: "Sim. Você pode fazer upgrade de Pro para Premium a qualquer momento. O valor é proporcional ao período restante." },
+];
+
+function FaqAccordion() {
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <div className="card space-y-1">
+      <h3 className="font-bold text-gray-900 mb-3">Perguntas frequentes</h3>
+      {FAQ_ITEMS.map(({ q, a }, i) => (
+        <div key={q} className="border border-gray-100 rounded-xl overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setOpen(open === i ? null : i)}
+            className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+          >
+            <span className="text-sm font-semibold text-gray-800">{q}</span>
+            <span className={`flex-shrink-0 text-gray-400 transition-transform duration-200 ${open === i ? "rotate-180" : ""}`}>
+              ▾
+            </span>
+          </button>
+          {open === i && (
+            <div className="px-4 pb-4 text-sm text-gray-500 border-t border-gray-50 pt-3">
+              {a}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
