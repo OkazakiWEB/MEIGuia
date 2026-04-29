@@ -1,135 +1,43 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import {
-  Settings, User, LogOut, Trash2, AlertTriangle, Loader2,
-  Camera, CreditCard, CheckCircle, XCircle, Sparkles, Phone,
+  Settings, Trash2, AlertTriangle, Loader2,
+  CreditCard, CheckCircle, XCircle, Sparkles,
 } from "lucide-react";
 import { ContadorAccess } from "@/components/ui/ContadorAccess";
 
 export default function ConfiguracoesPage() {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [fullName, setFullName]           = useState("");
-  const [email, setEmail]                 = useState("");
-  const [cnpj, setCnpj]                   = useState("");
-  const [userId, setUserId]               = useState<string | null>(null);
-  const [avatarUrl, setAvatarUrl]         = useState<string | null>(null);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [loading, setLoading]             = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [plano, setPlano]                 = useState<string>("free");
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [whatsappPhone, setWhatsappPhone] = useState("");
-  const [savingPhone, setSavingPhone]     = useState(false);
   const [deleteModal, setDeleteModal]     = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting]           = useState(false);
-
-  function formatPhone(value: string) {
-    const d = value.replace(/\D/g, "").slice(0, 11);
-    if (d.length <= 2)  return d;
-    if (d.length <= 7)  return `(${d.slice(0,2)}) ${d.slice(2)}`;
-    return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
-  }
-
-  function formatCnpj(value: string) {
-    const digits = value.replace(/\D/g, "").slice(0, 14);
-    return digits
-      .replace(/^(\d{2})(\d)/, "$1.$2")
-      .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
-      .replace(/\.(\d{3})(\d)/, ".$1/$2")
-      .replace(/(\d{4})(\d)/, "$1-$2");
-  }
-
-  async function handleUpdateCnpj() {
-    if (!userId) return;
-    const digits = cnpj.replace(/\D/g, "");
-    if (digits.length !== 14) { toast.error("CNPJ inválido. Informe os 14 dígitos."); return; }
-    const supabase = createClient();
-    const { error } = await supabase.from("profiles").update({ cnpj: digits }).eq("id", userId);
-    if (error) toast.error("Erro ao salvar CNPJ.");
-    else toast.success("CNPJ atualizado!");
-  }
 
   useEffect(() => {
     const supabase = createClient();
     async function load() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      setUserId(user.id);
       const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, email, plano, subscription_status, avatar_url, cnpj, whatsapp_phone")
+        .select("plano, subscription_status")
         .eq("id", user.id)
-        .single<{ full_name: string | null; email: string | null; plano: string | null; subscription_status: string | null; avatar_url: string | null; cnpj: string | null; whatsapp_phone: string | null }>();
-
-      setFullName(profile?.full_name || "");
-      setEmail(profile?.email || user.email || "");
+        .single();
       setPlano(profile?.plano ?? "free");
       setSubscriptionStatus(profile?.subscription_status || null);
-      setAvatarUrl(profile?.avatar_url || null);
-      setCnpj(profile?.cnpj ? formatCnpj(profile.cnpj) : "");
-      setWhatsappPhone(profile?.whatsapp_phone ? formatPhone(profile.whatsapp_phone) : "");
       setLoadingProfile(false);
     }
     load();
   }, []);
-
-  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !userId) return;
-    if (file.size > 2 * 1024 * 1024) { toast.error("Imagem deve ter no máximo 2MB."); return; }
-    if (!file.type.startsWith("image/")) { toast.error("Selecione uma imagem válida."); return; }
-
-    setUploadingAvatar(true);
-    const supabase = createClient();
-    const ext  = file.name.split(".").pop();
-    const path = `${userId}/avatar.${ext}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(path, file, { upsert: true });
-
-    if (uploadError) { toast.error("Erro ao enviar imagem."); setUploadingAvatar(false); return; }
-
-    const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
-    const urlWithBust = `${publicUrl}?t=${Date.now()}`;
-
-    await supabase.from("profiles").update({ avatar_url: urlWithBust }).eq("id", userId);
-    setAvatarUrl(urlWithBust);
-    toast.success("Foto atualizada!");
-    setUploadingAvatar(false);
-  }
-
-  async function handleUpdateName(e: React.FormEvent) {
-    e.preventDefault();
-    if (!userId) return;
-    setLoading(true);
-    const supabase = createClient();
-    const { error } = await supabase.from("profiles").update({ full_name: fullName }).eq("id", userId);
-    if (error) toast.error("Erro ao atualizar nome.");
-    else toast.success("Nome atualizado!");
-    setLoading(false);
-  }
-
-  async function handleSavePhone() {
-    if (!userId) return;
-    const digits = whatsappPhone.replace(/\D/g, "");
-    if (digits.length < 10) { toast.error("Informe um celular válido com DDD."); return; }
-    setSavingPhone(true);
-    const supabase = createClient();
-    const { error } = await supabase.from("profiles").update({ whatsapp_phone: digits }).eq("id", userId);
-    if (error) toast.error("Erro ao salvar celular.");
-    else toast.success("Celular atualizado! Alertas serão enviados para esse número.");
-    setSavingPhone(false);
-  }
 
   async function handlePortal() {
     setPortalLoading(true);
@@ -149,7 +57,7 @@ export default function ConfiguracoesPage() {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ interval: "monthly" }),
+        body: JSON.stringify({ interval: "monthly", plan: "pro" }),
       });
       const { url, error } = await res.json();
       if (error) { toast.error(error); return; }
@@ -157,13 +65,6 @@ export default function ConfiguracoesPage() {
     } finally {
       setCheckoutLoading(false);
     }
-  }
-
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
   }
 
   async function handleDeleteAccount() {
@@ -185,151 +86,14 @@ export default function ConfiguracoesPage() {
 
   const isPro     = plano === "pro" || plano === "premium";
   const isPremium = plano === "premium";
-  const initials  = fullName?.trim().split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "?";
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Settings className="w-6 h-6" />
-          Configurações
+          <Settings className="w-6 h-6" /> Configurações
         </h1>
-        <p className="text-gray-500 text-sm mt-1">Gerencie sua conta</p>
-      </div>
-
-      {/* ── Perfil ── */}
-      <div className="card">
-        <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <User className="w-5 h-5" /> Perfil
-        </h2>
-        {loadingProfile ? (
-          <div className="h-20 bg-gray-100 rounded-lg animate-pulse" />
-        ) : (
-          <div className="space-y-5">
-            {/* Avatar */}
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt="Foto de perfil"
-                    className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-                  />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-petroleo-600 flex items-center justify-center text-white text-xl font-bold border-2 border-gray-200">
-                    {initials}
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingAvatar}
-                  className="absolute -bottom-1 -right-1 w-6 h-6 bg-white border border-gray-300 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors"
-                >
-                  {uploadingAvatar
-                    ? <Loader2 className="w-3 h-3 animate-spin text-gray-500" />
-                    : <Camera className="w-3 h-3 text-gray-600" />
-                  }
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleAvatarChange}
-                />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-700">Foto de perfil</p>
-                <p className="text-xs text-gray-400">JPG, PNG ou WebP — máx. 2MB</p>
-              </div>
-            </div>
-
-            {/* Nome e e-mail */}
-            <form onSubmit={handleUpdateName} className="space-y-4">
-              <div>
-                <label className="label">Nome completo</label>
-                <input
-                  type="text"
-                  className="input"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <label className="label">E-mail</label>
-                <input
-                  type="email"
-                  className="input bg-gray-50 cursor-not-allowed"
-                  value={email}
-                  disabled
-                />
-                <p className="text-xs text-gray-400 mt-1">O e-mail não pode ser alterado aqui.</p>
-              </div>
-              <button type="submit" disabled={loading} className="btn-primary flex items-center gap-2">
-                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : "Salvar alterações"}
-              </button>
-            </form>
-
-            {/* CNPJ — separado do form de nome para salvar independentemente */}
-            <div className="border-t border-gray-100 pt-5 mt-1">
-              <label className="label">CNPJ do MEI</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  className="input"
-                  placeholder="00.000.000/0001-00"
-                  value={cnpj}
-                  onChange={(e) => setCnpj(formatCnpj(e.target.value))}
-                  inputMode="numeric"
-                  maxLength={18}
-                />
-                <button
-                  type="button"
-                  onClick={handleUpdateCnpj}
-                  className="btn-secondary text-sm whitespace-nowrap"
-                >
-                  Salvar
-                </button>
-              </div>
-              <p className="text-xs text-gray-400 mt-1">Necessário para gerar sua Guia DAS.</p>
-            </div>
-
-            {/* WhatsApp — apenas Premium */}
-            {isPremium && (
-              <div className="border-t border-gray-100 pt-5 mt-1">
-                <label className="label flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-purple-500" />
-                  Celular para alertas via WhatsApp
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="tel"
-                    className="input"
-                    placeholder="(11) 99999-9999"
-                    value={whatsappPhone}
-                    onChange={(e) => setWhatsappPhone(formatPhone(e.target.value))}
-                    inputMode="numeric"
-                    maxLength={15}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSavePhone}
-                    disabled={savingPhone}
-                    className="btn-secondary text-sm whitespace-nowrap flex items-center gap-1.5"
-                  >
-                    {savingPhone ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-                    Salvar
-                  </button>
-                </div>
-                <p className="text-xs text-gray-400 mt-1">
-                  Você receberá alertas quando se aproximar do limite anual de R$ 81.000.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+        <p className="text-gray-500 text-sm mt-1">Assinatura, acesso e conta</p>
       </div>
 
       {/* ── Assinatura ── */}
@@ -352,11 +116,7 @@ export default function ConfiguracoesPage() {
                 </p>
               </div>
             </div>
-            <button
-              onClick={handlePortal}
-              disabled={portalLoading}
-              className="btn-secondary flex items-center gap-2 text-sm"
-            >
+            <button onClick={handlePortal} disabled={portalLoading} className="btn-secondary flex items-center gap-2 text-sm">
               {portalLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
               Gerenciar assinatura
             </button>
@@ -374,11 +134,7 @@ export default function ConfiguracoesPage() {
                 </p>
               </div>
             </div>
-            <button
-              onClick={handlePortal}
-              disabled={portalLoading}
-              className="btn-secondary flex items-center gap-2 text-sm"
-            >
+            <button onClick={handlePortal} disabled={portalLoading} className="btn-secondary flex items-center gap-2 text-sm">
               {portalLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
               Gerenciar assinatura
             </button>
@@ -392,11 +148,7 @@ export default function ConfiguracoesPage() {
                 <p className="text-xs text-gray-500">Limite de 5 notas por mês</p>
               </div>
             </div>
-            <button
-              onClick={handleCheckout}
-              disabled={checkoutLoading}
-              className="btn-primary flex items-center gap-2 text-sm"
-            >
+            <button onClick={handleCheckout} disabled={checkoutLoading} className="btn-primary flex items-center gap-2 text-sm">
               {checkoutLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
               Ver planos
             </button>
@@ -407,23 +159,10 @@ export default function ConfiguracoesPage() {
       {/* ── Modo Contador ── */}
       <ContadorAccess isPro={isPro} />
 
-      {/* ── Sessão ── */}
-      <div className="card">
-        <h2 className="font-semibold text-gray-900 mb-4">Sessão</h2>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 text-red-600 hover:text-red-700 text-sm font-medium"
-        >
-          <LogOut className="w-4 h-4" />
-          Encerrar sessão
-        </button>
-      </div>
-
       {/* ── Zona de perigo ── */}
       <div className="card border border-red-100">
         <h2 className="font-semibold text-red-700 mb-2 flex items-center gap-2">
-          <Trash2 className="w-4 h-4" />
-          Zona de perigo
+          <Trash2 className="w-4 h-4" /> Zona de perigo
         </h2>
         <p className="text-sm text-gray-500 mb-4">
           A exclusão da conta é permanente e irreversível. Remove todos os seus dados,
@@ -455,7 +194,7 @@ export default function ConfiguracoesPage() {
               <ul className="list-disc list-inside space-y-0.5 text-xs">
                 <li>Todas as suas notas fiscais</li>
                 <li>Seu perfil e dados pessoais</li>
-                <li>Sua assinatura Pro (se ativa)</li>
+                <li>Sua assinatura (se ativa)</li>
                 <li>Seu acesso à plataforma</li>
               </ul>
             </div>
@@ -464,18 +203,12 @@ export default function ConfiguracoesPage() {
                 Digite <span className="font-mono font-bold text-red-600">EXCLUIR</span> para confirmar:
               </label>
               <input
-                type="text"
-                className="input mt-2"
-                placeholder="EXCLUIR"
-                value={deleteConfirmText}
-                onChange={(e) => setDeleteConfirmText(e.target.value)}
-                autoFocus
+                type="text" className="input mt-2" placeholder="EXCLUIR"
+                value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)} autoFocus
               />
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteModal(false)} disabled={deleting} className="btn-secondary flex-1">
-                Cancelar
-              </button>
+              <button onClick={() => setDeleteModal(false)} disabled={deleting} className="btn-secondary flex-1">Cancelar</button>
               <button
                 onClick={handleDeleteAccount}
                 disabled={deleteConfirmText !== "EXCLUIR" || deleting}

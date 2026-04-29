@@ -207,6 +207,8 @@ export type Database = {
           updated_at: string | null
           welcome_email_sent: boolean | null
           whatsapp_phone: string | null
+          notif_email: boolean | null
+          notif_whatsapp: boolean | null
         }
         Insert: {
           ano_referencia?: number
@@ -228,6 +230,8 @@ export type Database = {
           updated_at?: string | null
           welcome_email_sent?: boolean | null
           whatsapp_phone?: string | null
+          notif_email?: boolean | null
+          notif_whatsapp?: boolean | null
         }
         Update: {
           ano_referencia?: number
@@ -249,6 +253,8 @@ export type Database = {
           updated_at?: string | null
           welcome_email_sent?: boolean | null
           whatsapp_phone?: string | null
+          notif_email?: boolean | null
+          notif_whatsapp?: boolean | null
         }
         Relationships: []
       }
