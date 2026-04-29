@@ -127,13 +127,6 @@ export default async function DashboardPage() {
       sub: isPremium ? "Receba avisos no celular antes de ultrapassar o limite" : "Você já recebe alertas por e-mail automaticamente",
       href: isPremium ? "/perfil" : undefined,
     },
-    ...(isPremium ? [] : [{
-      id: "plano",
-      done: isPro,
-      label: "Conheça o plano Pro",
-      sub: "30 notas/mês, previsão anual e muito mais",
-      href: "/assinatura",
-    }]),
   ];
   const stepsFeitos  = checklistSteps.filter(s => s.done).length;
   const totalSteps   = checklistSteps.length;
