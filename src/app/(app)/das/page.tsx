@@ -12,7 +12,7 @@ export default async function DasPage() {
   const anoAtual = new Date().getFullYear();
 
   const [{ data: profile }, { data: pagamentos }] = await Promise.all([
-    supabase.from("profiles").select("cnpj, full_name").eq("id", user.id).single(),
+    supabase.from("profiles").select("cnpj, full_name, plano").eq("id", user.id).single(),
     supabase
       .from("das_pagamentos")
       .select("*")
@@ -21,6 +21,8 @@ export default async function DasPage() {
       .lte("competencia", `${anoAtual}-12-31`)
       .order("competencia", { ascending: true }),
   ]);
+
+  if (profile?.plano !== "premium") redirect("/assinatura?upgrade=premium");
 
   return (
     <DasPageClient

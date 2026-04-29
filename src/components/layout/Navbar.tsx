@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LayoutDashboard, FileText, Settings, LogOut, Menu, X, Sparkles, Receipt } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, LogOut, Menu, X, Sparkles, Receipt, Lock } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { LogoInline } from "@/components/ui/Logo";
@@ -43,8 +43,27 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
   }
 
   function NavItem({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) {
-    const isActive = pathname === href || pathname.startsWith(href + "/");
-    const isNotas = href === "/notas";
+    const isActive  = pathname === href || pathname.startsWith(href + "/");
+    const isNotas   = href === "/notas";
+    const isDas     = href === "/das";
+    const dasLocked = isDas && !isPremium;
+
+    if (dasLocked) {
+      return (
+        <Link
+          href="/assinatura?upgrade=premium"
+          onClick={() => setMobileOpen(false)}
+          className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-petroleo-400 hover:bg-petroleo-700 hover:text-petroleo-200"
+        >
+          <span className="flex items-center gap-3">
+            <Icon className="w-4 h-4 flex-shrink-0" />
+            {label}
+          </span>
+          <Lock className="w-3 h-3 flex-shrink-0" />
+        </Link>
+      );
+    }
+
     return (
       <Link
         href={href}
@@ -60,7 +79,6 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
           <Icon className="w-4 h-4 flex-shrink-0" />
           {label}
         </span>
-        {/* Contador de notas para free e pro */}
         {isNotas && !isPremium && (
           <span className={cn("text-xs tabular-nums", counterColor)}>
             {notasMes}/{notasLimit}
