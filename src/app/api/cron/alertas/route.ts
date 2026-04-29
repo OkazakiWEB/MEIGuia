@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { sendLimitAlertEmail } from "@/lib/emails";
 import { LIMITE_MEI } from "@/lib/constants";
+import { sendWhatsApp, mensagemAlerta70, mensagemAlerta90, mensagemAlerta100 } from "@/lib/whatsapp";
 
 /**
  * GET /api/cron/alertas
@@ -26,10 +27,10 @@ export async function GET(request: NextRequest) {
   const anoAtual = new Date().getFullYear();
 
   try {
-    // Buscar todos os usuários com plano ativo (free ou pro) e e-mail confirmado
+    // Buscar todos os usuários com e-mail confirmado
     const { data: profiles, error } = await supabase
       .from("profiles")
-      .select("id, email, full_name, last_alert_sent, last_alert_year")
+      .select("id, email, full_name, plano, whatsapp_phone, last_alert_sent, last_alert_year")
       .not("email", "is", null);
 
     if (error) throw error;
@@ -78,14 +79,30 @@ export async function GET(request: NextRequest) {
 
         if (jaEnviado || Number(targetLevel) <= nivelAnterior) continue;
 
-        // Enviar e-mail
+        const nome = profile.full_name ?? "MEI";
+
+        // Enviar e-mail (todos os planos)
         await sendLimitAlertEmail({
           to: profile.email!,
-          nome: profile.full_name ?? "MEI",
+          nome,
           percentual,
           totalFaturado: total,
           limiteRestante,
         });
+
+        // Enviar WhatsApp (apenas Premium com celular cadastrado)
+        if (profile.plano === "premium" && profile.whatsapp_phone) {
+          try {
+            const msg =
+              targetLevel === "100" ? mensagemAlerta100(nome, total) :
+              targetLevel === "90"  ? mensagemAlerta90(nome, total, limiteRestante) :
+                                      mensagemAlerta70(nome, total, limiteRestante);
+            await sendWhatsApp(profile.whatsapp_phone, msg);
+            console.log(`[Cron/Alertas] WhatsApp enviado: user=${profile.id} level=${targetLevel}%`);
+          } catch (waErr) {
+            console.error(`[Cron/Alertas] WhatsApp falhou user=${profile.id}:`, waErr);
+          }
+        }
 
         // Registrar envio para não repetir
         await supabase
