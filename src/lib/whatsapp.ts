@@ -1,6 +1,7 @@
-const ZAPI_INSTANCE = process.env.ZAPI_INSTANCE_ID!;
-const ZAPI_TOKEN    = process.env.ZAPI_TOKEN!;
-const ZAPI_BASE     = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}`;
+const ZAPI_INSTANCE     = process.env.ZAPI_INSTANCE_ID!;
+const ZAPI_TOKEN        = process.env.ZAPI_TOKEN!;
+const ZAPI_CLIENT_TOKEN = process.env.ZAPI_CLIENT_TOKEN!;
+const ZAPI_BASE         = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}`;
 
 export async function sendWhatsApp(phone: string, message: string): Promise<void> {
   // Normaliza para formato internacional brasileiro (55 + DDD + número)
@@ -9,7 +10,10 @@ export async function sendWhatsApp(phone: string, message: string): Promise<void
 
   const res = await fetch(`${ZAPI_BASE}/send-text`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "client-token": ZAPI_CLIENT_TOKEN,
+    },
     body: JSON.stringify({ phone: e164, message }),
   });
 
