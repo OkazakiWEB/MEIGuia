@@ -9,7 +9,7 @@ import Link from "next/link";
 import {
   formatCurrency, calcPercentual, calcPrevisaoAnual, calcSugestaoMensal,
 } from "@/lib/utils";
-import { TrendingUp, FileText, Calendar, Plus, Sparkles, AlertTriangle } from "lucide-react";
+import { TrendingUp, FileText, Calendar, Plus, Sparkles, AlertTriangle, CheckCircle2, Circle } from "lucide-react";
 import { NotasUsageBar } from "@/components/ui/NotasUsageBar";
 import type { NotaFiscal } from "@/types/database";
 import { LIMITE_MEI } from "@/lib/constants";
@@ -104,6 +104,41 @@ export default async function DashboardPage() {
     previsaoAnualTodos > LIMITE_MEI * 0.85 &&
     totalAno < LIMITE_MEI;
 
+  // Checklist de primeiros passos
+  const checklistSteps = [
+    {
+      id: "cnpj",
+      done: !!profile?.cnpj,
+      label: "Adicione seu CNPJ",
+      sub: "Necessário para gerar a guia DAS",
+      href: "/perfil",
+    },
+    {
+      id: "nota",
+      done: notasReaisLista.length > 0,
+      label: "Lance sua primeira nota fiscal",
+      sub: "Comece a controlar seu faturamento",
+      href: "/notas/nova",
+    },
+    {
+      id: "notif",
+      done: !!(isPremium ? profile?.whatsapp_phone : true),
+      label: isPremium ? "Configure seu WhatsApp para alertas" : "Alertas por e-mail ativos",
+      sub: isPremium ? "Receba avisos no celular antes de ultrapassar o limite" : "Você já recebe alertas por e-mail automaticamente",
+      href: isPremium ? "/perfil" : undefined,
+    },
+    ...(isPremium ? [] : [{
+      id: "plano",
+      done: isPro,
+      label: "Conheça o plano Pro",
+      sub: "30 notas/mês, previsão anual e muito mais",
+      href: "/assinatura",
+    }]),
+  ];
+  const stepsFeitos  = checklistSteps.filter(s => s.done).length;
+  const totalSteps   = checklistSteps.length;
+  const checklistOk  = stepsFeitos === totalSteps;
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* ── Cabeçalho ── */}
@@ -119,6 +154,61 @@ export default async function DashboardPage() {
           <span className="hidden sm:inline">Nova nota</span>
         </Link>
       </div>
+
+      {/* ── Checklist primeiros passos — oculto quando tudo concluído ── */}
+      {!checklistOk && (
+        <div className="card border border-brand-100 bg-gradient-to-br from-brand-50 to-white">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-semibold text-gray-900">Primeiros passos</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Complete as etapas para aproveitar ao máximo o MEIGuia</p>
+            </div>
+            {/* Barra de progresso */}
+            <div className="flex-shrink-0 text-right">
+              <span className="text-xs font-bold text-brand-700">{stepsFeitos}/{totalSteps}</span>
+              <div className="w-20 h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                <div
+                  className="h-1.5 bg-brand-500 rounded-full transition-all duration-700"
+                  style={{ width: `${(stepsFeitos / totalSteps) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+          <ul className="space-y-3">
+            {checklistSteps.map((step) => {
+              const content = (
+                <div className={`flex items-start gap-3 p-3 rounded-xl transition-colors ${
+                  step.done
+                    ? "bg-green-50"
+                    : step.href ? "bg-white border border-gray-100 hover:border-brand-200 hover:bg-brand-50/30 cursor-pointer" : "bg-white border border-gray-100"
+                }`}>
+                  {step.done
+                    ? <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    : <Circle className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />}
+                  <div className="min-w-0">
+                    <p className={`text-sm font-medium ${step.done ? "text-green-700 line-through" : "text-gray-800"}`}>
+                      {step.label}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">{step.sub}</p>
+                  </div>
+                  {!step.done && step.href && (
+                    <span className="ml-auto flex-shrink-0 text-xs font-semibold text-brand-600 whitespace-nowrap">
+                      Fazer →
+                    </span>
+                  )}
+                </div>
+              );
+              return (
+                <li key={step.id}>
+                  {!step.done && step.href
+                    ? <Link href={step.href}>{content}</Link>
+                    : content}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
 
       {/* ── Alerta de faturamento ── */}
       <AlertaBanner totalFaturado={totalAno} percentual={percentual} />
