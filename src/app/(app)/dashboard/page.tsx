@@ -230,7 +230,7 @@ export default async function DashboardPage() {
         <MetricCard
           label="Notas registradas"
           value={String(notasReaisLista.length)}
-          sublabel={!isPro ? `${qtdNotasMes}/10 este mês` : undefined}
+          sublabel={!isPro ? `${qtdNotasMes}/${plano === "pro" ? 30 : 5} este mês` : undefined}
           icon={<FileText className="w-5 h-5 text-brand-600" />}
         />
         <MetricCard
