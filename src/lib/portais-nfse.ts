@@ -133,15 +133,16 @@ const PORTAIS: Record<string, PortalNFSe> = {
 };
 
 export const PORTAL_GENERICO: PortalNFSe = {
-  cidade: "Seu municipio",
+  cidade: "Nacional",
   uf: "",
-  portal: "",
-  sistema: "Portal Gov.br / Prefeitura local",
+  portal: "https://www.nfse.gov.br/",
+  sistema: "Portal Nacional NFS-e (Gov.br)",
   instrucoes: [
-    "Pesquise no Google: NFS-e + nome da sua cidade",
-    "Acesse o portal da prefeitura e faca login com seu CNPJ",
-    "Emita a nota com os dados do servico",
-    "Anote o numero e salve no MEIguia",
+    "Acesse nfse.gov.br ou baixe o app NFS-e Mobile",
+    "Faca login com sua conta Gov.br (nivel Prata ou Ouro)",
+    "Clique em Nova Nota e selecione Emitir NFS-e",
+    "Preencha os dados do tomador (cliente), servico prestado e valor",
+    "Clique em Emitir e anote o numero da nota gerada",
   ],
 };
 

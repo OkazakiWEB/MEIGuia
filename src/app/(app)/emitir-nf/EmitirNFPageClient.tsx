@@ -67,10 +67,7 @@ export function EmitirNFPageClient({ cnpj, municipioNome: municipioInicial, nome
 
   function abrirPortal() {
     copiarCnpj();
-    const url = portal.portal
-      ? portal.portal
-      : `https://www.google.com/search?q=emitir+NFS-e+nota+fiscal+servico+${encodeURIComponent(municipio ?? "prefeitura")}`;
-    setTimeout(() => window.open(url, "_blank", "noopener,noreferrer"), 600);
+    setTimeout(() => window.open(portal.portal, "_blank", "noopener,noreferrer"), 600);
   }
 
   async function salvarNumero(notaId: string) {
@@ -118,6 +115,23 @@ export function EmitirNFPageClient({ cnpj, municipioNome: municipioInicial, nome
           </div>
         </div>
       )}
+
+      {/* Aviso Gov.br */}
+      <div className="card bg-blue-50 border border-blue-200 flex items-start gap-3 py-3">
+        <span className="text-xl flex-shrink-0">ℹ️</span>
+        <div className="text-sm text-blue-800">
+          <p className="font-semibold mb-0.5">Conta Gov.br necessária</p>
+          <p className="text-blue-700 text-xs leading-relaxed">
+            A emissão de NFS-e exige conta Gov.br nível <strong>Prata ou Ouro</strong>.
+            Se ainda não tem, acesse{" "}
+            <a href="https://acesso.gov.br" target="_blank" rel="noopener noreferrer" className="underline font-medium">
+              acesso.gov.br
+            </a>{" "}
+            para criar ou elevar o nível da sua conta. Também é possível usar o app{" "}
+            <strong>NFS-e Mobile</strong> (disponível na App Store e Google Play).
+          </p>
+        </div>
+      </div>
 
       {/* Card do portal */}
       <div className="card space-y-4">
