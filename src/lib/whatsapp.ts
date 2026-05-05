@@ -23,6 +23,19 @@ export async function sendWhatsApp(phone: string, message: string): Promise<void
   }
 }
 
+// ── Mensagens de lembrete DAS ─────────────────────────────────────────────────
+
+export function mensagemLembreteDas(nome: string, mes: string, valor: number, vencimento: string): string {
+  return (
+    `📋 *Lembrete MEIGuia — DAS de ${mes}*\n\n` +
+    `Olá, ${nome}! O seu DAS do mês de *${mes}* vence em *${vencimento}*.\n\n` +
+    `Valor estimado: *R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}*\n\n` +
+    `Gere a guia no portal da Receita Federal e evite multas:\n` +
+    `👉 https://www8.receita.fazenda.gov.br/SimplesNacional/Aplicacoes/ATSPO/pgmei.app/Identificacao\n\n` +
+    `_Acompanhe seus pagamentos em: https://meiguia.com.br/das_`
+  );
+}
+
 // ── Mensagens de alerta de limite ────────────────────────────────────────────
 
 export function mensagemAlerta70(nome: string, total: number, restante: number): string {
