@@ -1,28 +1,21 @@
-/**
- * Mapeamento de municípios para seus portais de NFS-e.
- * Chave: nome da cidade em UPPERCASE sem acentos (normalizado).
- * Fase 1: guia o usuário ao portal correto.
- * Fase 2: será substituído por emissão direta via API (eNotas).
- */
-
 export interface PortalNFSe {
   cidade: string;
   uf: string;
   portal: string;
-  sistema: string;       // nome do sistema (Nota Carioca, ISS Digital, etc.)
-  instrucoes: string[];  // passos específicos para essa cidade
+  sistema: string;
+  instrucoes: string[];
 }
 
 const PORTAIS: Record<string, PortalNFSe> = {
   "SAO PAULO": {
-    cidade: "São Paulo", uf: "SP",
+    cidade: "Sao Paulo", uf: "SP",
     portal: "https://nfe.prefeitura.sp.gov.br/",
     sistema: "NF-e SP",
     instrucoes: [
       "Acesse o portal NF-e SP com seu CNPJ e senha",
-      "Clique em "Emitir NFS-e"",
-      "Preencha os dados do tomador e do serviço",
-      "Confirme e anote o número da nota",
+      "Clique em Emitir NFS-e",
+      "Preencha os dados do tomador e do servico",
+      "Confirme e anote o numero da nota",
     ],
   },
   "RIO DE JANEIRO": {
@@ -31,9 +24,9 @@ const PORTAIS: Record<string, PortalNFSe> = {
     sistema: "Nota Carioca",
     instrucoes: [
       "Acesse a Nota Carioca com seu CNPJ",
-      "Vá em "Emitir NFS-e"",
-      "Preencha tomador, serviço e valor",
-      "Anote o número da nota gerada",
+      "Va em Emitir NFS-e",
+      "Preencha tomador, servico e valor",
+      "Anote o numero da nota gerada",
     ],
   },
   "BELO HORIZONTE": {
@@ -42,20 +35,20 @@ const PORTAIS: Record<string, PortalNFSe> = {
     sistema: "BHISS Digital",
     instrucoes: [
       "Acesse o BHISS Digital com seu CNPJ",
-      "Selecione "Nova NFS-e"",
-      "Informe os dados do serviço e tomador",
-      "Anote o número gerado",
+      "Selecione Nova NFS-e",
+      "Informe os dados do servico e tomador",
+      "Anote o numero gerado",
     ],
   },
   "BRASILIA": {
-    cidade: "Brasília", uf: "DF",
+    cidade: "Brasilia", uf: "DF",
     portal: "https://www.nfse.df.gov.br/",
     sistema: "NFS-e DF",
     instrucoes: [
       "Acesse a NFS-e DF com seu login Gov.br",
-      "Clique em "Emitir Nota"",
-      "Preencha os dados do serviço",
-      "Salve o número da nota",
+      "Clique em Emitir Nota",
+      "Preencha os dados do servico",
+      "Salve o numero da nota",
     ],
   },
   "CURITIBA": {
@@ -64,9 +57,9 @@ const PORTAIS: Record<string, PortalNFSe> = {
     sistema: "ISS Digital Curitiba",
     instrucoes: [
       "Acesse o ISS Digital com seu CNPJ",
-      "Vá em "Emitir NFS-e"",
+      "Va em Emitir NFS-e",
       "Informe os dados e confirme",
-      "Anote o número da nota",
+      "Anote o numero da nota",
     ],
   },
   "PORTO ALEGRE": {
@@ -75,9 +68,9 @@ const PORTAIS: Record<string, PortalNFSe> = {
     sistema: "ISSQN Porto Alegre",
     instrucoes: [
       "Acesse o ISSQN com seu CNPJ",
-      "Selecione "Emitir NFS-e"",
-      "Preencha tomador e serviço",
-      "Anote o número",
+      "Selecione Emitir NFS-e",
+      "Preencha tomador e servico",
+      "Anote o numero",
     ],
   },
   "SALVADOR": {
@@ -86,9 +79,9 @@ const PORTAIS: Record<string, PortalNFSe> = {
     sistema: "ISS Digital Salvador",
     instrucoes: [
       "Acesse o ISS Digital com seu CNPJ",
-      "Vá em "Nova Nota"",
+      "Va em Nova Nota",
       "Preencha os dados e confirme",
-      "Salve o número da nota",
+      "Salve o numero da nota",
     ],
   },
   "FORTALEZA": {
@@ -97,8 +90,8 @@ const PORTAIS: Record<string, PortalNFSe> = {
     sistema: "ISSQN Fortaleza",
     instrucoes: [
       "Acesse o ISSQN com seu CNPJ",
-      "Emita a NFS-e informando os dados do serviço",
-      "Anote o número gerado",
+      "Emita a NFS-e informando os dados do servico",
+      "Anote o numero gerado",
     ],
   },
   "RECIFE": {
@@ -107,7 +100,7 @@ const PORTAIS: Record<string, PortalNFSe> = {
     sistema: "NFS-e Recife",
     instrucoes: [
       "Acesse o portal com seu CNPJ",
-      "Emita a nota e anote o número",
+      "Emita a nota e anote o numero",
     ],
   },
   "MANAUS": {
@@ -116,7 +109,7 @@ const PORTAIS: Record<string, PortalNFSe> = {
     sistema: "SEFIN Manaus",
     instrucoes: [
       "Acesse o portal SEFIN com seu CNPJ",
-      "Emita a NFS-e e anote o número",
+      "Emita a NFS-e e anote o numero",
     ],
   },
   "CAMPINAS": {
@@ -125,31 +118,30 @@ const PORTAIS: Record<string, PortalNFSe> = {
     sistema: "ISSNet Campinas",
     instrucoes: [
       "Acesse o ISSNet com seu CNPJ",
-      "Emita a NFS-e e anote o número",
+      "Emita a NFS-e e anote o numero",
     ],
   },
   "GOIANIA": {
-    cidade: "Goiânia", uf: "GO",
+    cidade: "Goiania", uf: "GO",
     portal: "https://nfse.goiania.go.gov.br/",
-    sistema: "NFS-e Goiânia",
+    sistema: "NFS-e Goiania",
     instrucoes: [
       "Acesse o portal com seu CNPJ",
-      "Emita a nota e anote o número",
+      "Emita a nota e anote o numero",
     ],
   },
 };
 
-/** Portal genérico de fallback quando a cidade não está mapeada */
 export const PORTAL_GENERICO: PortalNFSe = {
-  cidade: "Seu município",
+  cidade: "Seu municipio",
   uf: "",
   portal: "https://www.gov.br/empresas-e-negocios/pt-br/empreendedor/mei",
   sistema: "Portal Gov.br / Prefeitura local",
   instrucoes: [
-    "Acesse o portal de NFS-e da sua prefeitura (pesquise "NFS-e + nome da sua cidade")",
-    "Faça login com seu CNPJ",
-    "Emita a nota com os dados do serviço",
-    "Anote o número e salve no MEIguia",
+    "Pesquise no Google: NFS-e + nome da sua cidade",
+    "Acesse o portal da prefeitura e faca login com seu CNPJ",
+    "Emita a nota com os dados do servico",
+    "Anote o numero e salve no MEIguia",
   ],
 };
 
