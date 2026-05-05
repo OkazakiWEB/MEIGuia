@@ -66,32 +66,84 @@ function baseLayout({
 </body></html>`;
 }
 
-// ── E-mail 1 — Boas-vindas (D+1) ─────────────────────────────────────────────
-export async function sendWelcomeEmail({ to, nome }: { to: string; nome: string }) {
+// ── E-mail 1 — Boas-vindas (imediato D+0) ─────────────────────────────────────
+export async function sendWelcomeEmail({
+  to,
+  nome,
+  plano = "free",
+}: {
+  to: string;
+  nome: string;
+  plano?: string;
+}) {
   const firstName = nome?.split(" ")[0] || "MEI";
+
+  const planoBadge =
+    plano === "premium"
+      ? `<span style="display:inline-block;background:#7C3AED;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;">⭐ PREMIUM</span>`
+      : plano === "pro"
+      ? `<span style="display:inline-block;background:#1A6B8A;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;">✨ PRO</span>`
+      : `<span style="display:inline-block;background:#E5E7EB;color:#374151;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;">GRATUITO</span>`;
+
+  const passos =
+    plano === "free"
+      ? [
+          "Cadastre seu CNPJ no perfil",
+          "Registre sua primeira nota fiscal",
+          "Ative os alertas de limite por e-mail",
+        ]
+      : plano === "pro"
+      ? [
+          "Cadastre seu CNPJ no perfil",
+          "Registre sua primeira nota fiscal",
+          "Configure os alertas automáticos",
+        ]
+      : [
+          "Cadastre seu CNPJ e celular no perfil",
+          "Acesse a aba DAS para controlar seus pagamentos",
+          "Ative os alertas por WhatsApp",
+        ];
+
   const html = baseLayout({
-    ctaHref: `${APP_URL}/notas/nova`,
-    ctaText: "Registrar minha primeira nota",
+    ctaHref: `${APP_URL}/dashboard`,
+    ctaText: "Acessar meu dashboard",
     body: `
-      <p style="margin:0 0 16px;color:#374151;font-size:16px;font-weight:600;">Olá, ${firstName}! Bem-vindo ao Portal MEIguia 👋</p>
+      <p style="margin:0 0 4px;color:#374151;font-size:17px;font-weight:700;">Olá, ${firstName}! Bem-vindo ao MEIguia 🎉</p>
+      <p style="margin:0 0 20px;color:#6B7280;font-size:13px;">Seu plano: ${planoBadge}</p>
+
       <p style="margin:0 0 16px;color:#4B5563;font-size:15px;line-height:1.7;">
-        Sua conta está pronta. Agora você tem um lugar para acompanhar quanto já faturou
-        e saber exatamente quanto ainda pode ganhar antes de atingir o limite de <strong>R$ 81.000</strong> do MEI.
+        Sua conta está pronta. Agora você tem um painel completo para acompanhar
+        seu faturamento e nunca ser pego de surpresa com o limite de
+        <strong>R$ 81.000</strong> do MEI.
       </p>
-      <p style="margin:0 0 8px;color:#374151;font-size:14px;font-weight:600;">Comece com um passo simples:</p>
-      <table cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
-        <tr><td style="padding:6px 0;color:#4B5563;font-size:14px;">✅&nbsp; Registre uma nota que você emitiu recentemente</td></tr>
-        <tr><td style="padding:6px 0;color:#4B5563;font-size:14px;">📊&nbsp; Veja o gráfico do seu faturamento atualizado</td></tr>
-        <tr><td style="padding:6px 0;color:#4B5563;font-size:14px;">🔔&nbsp; Ative os alertas para nunca ser pego de surpresa</td></tr>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#F9FAFB;border-radius:12px;padding:20px 24px;margin:0 0 20px;">
+        <tr><td>
+          <p style="margin:0 0 12px;color:#374151;font-size:14px;font-weight:600;">Seus primeiros 3 passos:</p>
+          ${passos.map((p, i) => `
+          <table cellpadding="0" cellspacing="0" style="margin:0 0 10px;">
+            <tr>
+              <td style="width:28px;vertical-align:top;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#1A6B8A;color:#fff;border-radius:50%;font-size:11px;font-weight:700;">${i + 1}</span>
+              </td>
+              <td style="color:#4B5563;font-size:14px;line-height:1.5;padding-left:4px;">${p}</td>
+            </tr>
+          </table>`).join("")}
+        </td></tr>
       </table>
-      <p style="margin:16px 0 0;color:#6B7280;font-size:13px;">Leva menos de 1 minuto. Sem planilha, sem complicação.</p>
+
+      <p style="margin:0;color:#6B7280;font-size:13px;">
+        Tem alguma dúvida? Responda este e-mail — ficamos felizes em ajudar.
+      </p>
     `,
+    footer: `Você recebe este e-mail por ter criado uma conta no MEIguia.<br>
+      <a href="${APP_URL}/perfil" style="color:#1A6B8A;">Gerenciar meu perfil</a>`,
   });
 
   return getResend().emails.send({
     from: FROM,
     to,
-    subject: `${firstName}, seu MEI está protegido? Veja como saber agora`,
+    subject: `${firstName}, sua conta no MEIguia está pronta 🚀`,
     html,
   });
 }

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
   const { data: profiles, error } = await supabase
     .from("profiles")
-    .select("id, email, full_name, welcome_email_sent")
+    .select("id, email, full_name, welcome_email_sent, plano")
     .gte("created_at", de)
     .lte("created_at", ate)
     .eq("welcome_email_sent", false)
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
   for (const p of profiles ?? []) {
     try {
-      await sendWelcomeEmail({ to: p.email!, nome: p.full_name ?? "MEI" });
+      await sendWelcomeEmail({ to: p.email!, nome: p.full_name ?? "MEI", plano: p.plano ?? "free" });
       await supabase.from("profiles").update({ welcome_email_sent: true }).eq("id", p.id);
       enviados++;
     } catch (err) {

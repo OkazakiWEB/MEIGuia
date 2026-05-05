@@ -85,6 +85,8 @@ function CadastroForm() {
         (window as any).fbq("track", "CompleteRegistration", { content_name: selectedPlan });
       }
       toast.success("Conta criada! Bem-vindo ao MEIguia 🎉");
+      // Dispara e-mail de boas-vindas imediato em background (não bloqueia o redirect)
+      fetch("/api/emails/boas-vindas", { method: "POST" }).catch(() => {});
       router.push(selectedPlan !== "free" ? `/assinatura?upgrade=true&plan=${selectedPlan}&interval=${interval}` : "/dashboard");
       router.refresh();
       return;
