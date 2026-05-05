@@ -67,7 +67,10 @@ export function EmitirNFPageClient({ cnpj, municipioNome: municipioInicial, nome
 
   function abrirPortal() {
     copiarCnpj();
-    setTimeout(() => window.open(portal.portal, "_blank", "noopener,noreferrer"), 600);
+    const url = portal.portal
+      ? portal.portal
+      : `https://www.google.com/search?q=emitir+NFS-e+nota+fiscal+servico+${encodeURIComponent(municipio ?? "prefeitura")}`;
+    setTimeout(() => window.open(url, "_blank", "noopener,noreferrer"), 600);
   }
 
   async function salvarNumero(notaId: string) {

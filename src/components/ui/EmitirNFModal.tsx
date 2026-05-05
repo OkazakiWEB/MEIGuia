@@ -70,8 +70,11 @@ export function EmitirNFModal({ notaId, valor, cliente, descricao, numeroNfAtual
 
   function abrirPortal() {
     copiarCnpj();
+    const url = portal.portal
+      ? portal.portal
+      : `https://www.google.com/search?q=emitir+NFS-e+nota+fiscal+servico+${encodeURIComponent(municipio ?? "prefeitura")}`;
     setTimeout(() => {
-      window.open(portal.portal, "_blank", "noopener,noreferrer");
+      window.open(url, "_blank", "noopener,noreferrer");
       setPortalAberto(true);
     }, 800);
   }

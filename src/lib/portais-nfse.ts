@@ -135,7 +135,7 @@ const PORTAIS: Record<string, PortalNFSe> = {
 export const PORTAL_GENERICO: PortalNFSe = {
   cidade: "Seu municipio",
   uf: "",
-  portal: "https://www.gov.br/empresas-e-negocios/pt-br/empreendedor/mei",
+  portal: "",
   sistema: "Portal Gov.br / Prefeitura local",
   instrucoes: [
     "Pesquise no Google: NFS-e + nome da sua cidade",
