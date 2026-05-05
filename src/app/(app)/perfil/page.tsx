@@ -32,6 +32,10 @@ export default function PerfilPage() {
   const [notifWhatsapp, setNotifWhatsapp] = useState(true);
   const [savingNotif, setSavingNotif]     = useState(false);
 
+  // Atividade MEI
+  const [atividadeMei, setAtividadeMei]   = useState<"comercio" | "industria" | "servicos" | "misto">("servicos");
+  const [savingAtividade, setSavingAtividade] = useState(false);
+
   // Ano de referência
   const [anoRef, setAnoRef]               = useState(new Date().getFullYear());
   const [savingAno, setSavingAno]         = useState(false);
@@ -70,7 +74,7 @@ export default function PerfilPage() {
 
       const { data: p } = await supabase
         .from("profiles")
-        .select("full_name, email, plano, avatar_url, cnpj, whatsapp_phone, notif_email, notif_whatsapp, ano_referencia")
+        .select("full_name, email, plano, avatar_url, cnpj, whatsapp_phone, notif_email, notif_whatsapp, ano_referencia, atividade_mei")
         .eq("id", user.id)
         .single();
 
@@ -84,6 +88,7 @@ export default function PerfilPage() {
         setNotifEmail(p.notif_email ?? true);
         setNotifWhatsapp(p.notif_whatsapp ?? true);
         setAnoRef(p.ano_referencia ?? new Date().getFullYear());
+        setAtividadeMei((p.atividade_mei as typeof atividadeMei) ?? "servicos");
       }
       setLoadingProfile(false);
     }
@@ -152,6 +157,16 @@ export default function PerfilPage() {
     if (error) toast.error("Erro ao salvar. Tente novamente.");
     else toast.success("Preferências atualizadas com sucesso!");
     setSavingNotif(false);
+  }
+
+  async function handleSaveAtividade() {
+    if (!userId) return;
+    setSavingAtividade(true);
+    const supabase = createClient();
+    const { error } = await supabase.from("profiles").update({ atividade_mei: atividadeMei }).eq("id", userId);
+    if (error) toast.error("Erro ao salvar. Tente novamente.");
+    else toast.success("Atividade MEI atualizada!");
+    setSavingAtividade(false);
   }
 
   async function handleSaveAno() {
@@ -276,6 +291,43 @@ export default function PerfilPage() {
             {savingData ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : "Salvar alterações"}
           </button>
         </form>
+      </div>
+
+      {/* ── Atividade MEI ── */}
+      <div className="card space-y-4">
+        <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+          <Calendar className="w-4 h-4" /> Atividade do MEI
+        </h2>
+        <div>
+          <label className="label">Tipo de atividade</label>
+          <div className="grid grid-cols-2 gap-2 mt-1">
+            {([
+              { value: "comercio",  label: "Comércio",           sub: "+R$1,00 ICMS" },
+              { value: "industria", label: "Indústria",           sub: "+R$1,00 ICMS" },
+              { value: "servicos",  label: "Serviços",            sub: "+R$5,00 ISS"  },
+              { value: "misto",     label: "Comércio + Serviços", sub: "+R$6,00"       },
+            ] as const).map(({ value, label, sub }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setAtividadeMei(value)}
+                className={`text-left px-3 py-2.5 rounded-xl border text-sm transition-colors ${
+                  atividadeMei === value
+                    ? "border-petroleo-500 bg-petroleo-50 text-petroleo-800"
+                    : "border-gray-200 hover:border-gray-300 text-gray-700"
+                }`}
+              >
+                <span className="font-medium block">{label}</span>
+                <span className="text-xs text-gray-400">{sub}</span>
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-2">Usado para estimar o valor do DAS mensal.</p>
+        </div>
+        <button type="button" onClick={handleSaveAtividade} disabled={savingAtividade}
+          className="btn-secondary text-sm flex items-center gap-2">
+          {savingAtividade ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Salvando...</> : "Salvar atividade"}
+        </button>
       </div>
 
       {/* ── WhatsApp — apenas Premium ── */}

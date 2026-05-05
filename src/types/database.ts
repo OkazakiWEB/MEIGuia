@@ -209,6 +209,7 @@ export type Database = {
           whatsapp_phone: string | null
           notif_email: boolean | null
           notif_whatsapp: boolean | null
+          atividade_mei: string | null
         }
         Insert: {
           ano_referencia?: number
@@ -232,6 +233,7 @@ export type Database = {
           whatsapp_phone?: string | null
           notif_email?: boolean | null
           notif_whatsapp?: boolean | null
+          atividade_mei?: string | null
         }
         Update: {
           ano_referencia?: number
@@ -255,6 +257,7 @@ export type Database = {
           whatsapp_phone?: string | null
           notif_email?: boolean | null
           notif_whatsapp?: boolean | null
+          atividade_mei?: string | null
         }
         Relationships: []
       }
@@ -314,6 +317,18 @@ export type Tables<
 export type NotaFiscal      = Tables<"notas_fiscais">;
 export type Profile         = Tables<"profiles">;
 export type ContadorToken   = Tables<"contador_tokens">;
+
+export type DasGuia = {
+  id: string;
+  user_id: string;
+  mes_referencia: string;   // "2025-05-01"
+  faturamento_mes: number;
+  valor_das: number;
+  status: "pendente" | "pago";
+  data_pagamento: string | null;
+  created_at: string;
+  updated_at: string;
+};
 
 // Tipo manual para das_pagamentos (adicionado via migration)
 export type DasPagamento = {

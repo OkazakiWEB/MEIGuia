@@ -10,9 +10,15 @@ export default async function DasPage() {
   if (!user) redirect("/login");
 
   const anoAtual = new Date().getFullYear();
+  const mesAtual = new Date().getMonth() + 1;
+  const mesStr   = String(mesAtual).padStart(2, "0");
 
-  const [{ data: profile }, { data: pagamentos }] = await Promise.all([
-    supabase.from("profiles").select("cnpj, full_name, plano").eq("id", user.id).single(),
+  const [{ data: profile }, { data: pagamentos }, { data: notasMes }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("cnpj, full_name, plano, atividade_mei")
+      .eq("id", user.id)
+      .single(),
     supabase
       .from("das_pagamentos")
       .select("*")
@@ -20,9 +26,17 @@ export default async function DasPage() {
       .gte("competencia", `${anoAtual}-01-01`)
       .lte("competencia", `${anoAtual}-12-31`)
       .order("competencia", { ascending: true }),
+    supabase
+      .from("notas_fiscais")
+      .select("valor")
+      .eq("user_id", user.id)
+      .gte("data", `${anoAtual}-${mesStr}-01`)
+      .lte("data", `${anoAtual}-${mesStr}-31`),
   ]);
 
   if (profile?.plano !== "premium") redirect("/assinatura?upgrade=premium");
+
+  const faturamentoMesAtual = (notasMes ?? []).reduce((sum, n) => sum + Number(n.valor), 0);
 
   return (
     <DasPageClient
@@ -30,6 +44,8 @@ export default async function DasPage() {
       cnpj={profile?.cnpj ?? null}
       pagamentos={(pagamentos ?? []) as import("@/types/database").DasPagamento[]}
       anoAtual={anoAtual}
+      atividadeMei={(profile?.atividade_mei as "comercio" | "industria" | "servicos" | "misto") ?? "servicos"}
+      faturamentoMesAtual={faturamentoMesAtual}
     />
   );
 }

@@ -14,11 +14,27 @@ const MESES = [
 
 const MESES_CURTOS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 
+type AtividadeMei = "comercio" | "industria" | "servicos" | "misto";
+
+const DAS_BASE = 75.90;
+const DAS_ADICIONAL: Record<AtividadeMei, number> = {
+  comercio:  1.00,
+  industria: 1.00,
+  servicos:  5.00,
+  misto:     6.00,
+};
+
+function calcularDas(atividade: AtividadeMei): number {
+  return DAS_BASE + DAS_ADICIONAL[atividade];
+}
+
 interface Props {
   userId: string;
   cnpj: string | null;
   pagamentos: DasPagamento[];
   anoAtual: number;
+  atividadeMei: AtividadeMei;
+  faturamentoMesAtual: number;
 }
 
 function formatCnpj(cnpj: string) {
@@ -120,7 +136,8 @@ function ModalPagamento({
   );
 }
 
-export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
+export function DasPageClient({ userId, cnpj, pagamentos, anoAtual, atividadeMei, faturamentoMesAtual }: Props) {
+  const valorDasEstimado = calcularDas(atividadeMei);
   const [lista, setLista] = useState<DasPagamento[]>(pagamentos);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [modal, setModal] = useState<{ mes: number; competencia: string } | null>(null);
@@ -260,6 +277,35 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual }: Props) {
           <Copy className="w-4 h-4" />
           {cnpjCopiado ? "Copiado ✓" : "Copiar"}
         </button>
+      </div>
+
+      {/* ── DAS estimado do mês ── */}
+      <div className="card bg-petroleo-50 border border-petroleo-200">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-xs text-petroleo-500 font-medium uppercase tracking-wide mb-1">DAS estimado — mês atual</p>
+            <p className="text-3xl font-bold text-petroleo-900">
+              R$ {valorDasEstimado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+            </p>
+            <p className="text-xs text-petroleo-400 mt-1">
+              Base INSS R$75,90 + encargo{" "}
+              {atividadeMei === "misto" ? "Comércio+Serviços" :
+               atividadeMei === "comercio" ? "Comércio" :
+               atividadeMei === "industria" ? "Indústria" : "Serviços"}
+              {" "}· faturamento registrado:{" "}
+              R$ {faturamentoMesAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+            </p>
+          </div>
+          <Link
+            href="/perfil"
+            className="text-xs text-petroleo-500 hover:text-petroleo-700 underline flex-shrink-0"
+          >
+            Alterar atividade
+          </Link>
+        </div>
+        <p className="text-[11px] text-petroleo-400 mt-3 border-t border-petroleo-200 pt-3">
+          ⚠️ Valor estimado com base na tabela MEI 2025. O valor oficial é gerado pelo portal da Receita Federal.
+        </p>
       </div>
 
       {/* ── Resumo do ano ── */}
