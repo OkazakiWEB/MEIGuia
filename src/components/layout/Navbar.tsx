@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { LayoutDashboard, FileText, Settings, LogOut, Menu, X, Sparkles, Receipt, Lock, UserCircle } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, LogOut, Menu, X, Sparkles, Receipt, Lock, UserCircle, FilePlus } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { LogoInline } from "@/components/ui/Logo";
@@ -15,10 +15,11 @@ interface NavbarProps {
 }
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard",    icon: LayoutDashboard },
-  { href: "/notas",     label: "Notas Fiscais", icon: FileText },
-  { href: "/das",       label: "Guias DAS",     icon: Receipt },
-  { href: "/perfil",    label: "Perfil",        icon: UserCircle },
+  { href: "/dashboard",  label: "Dashboard",    icon: LayoutDashboard },
+  { href: "/notas",      label: "Notas Fiscais", icon: FileText },
+  { href: "/emitir-nf",  label: "Emitir NF",    icon: FilePlus },
+  { href: "/das",        label: "Guias DAS",     icon: Receipt },
+  { href: "/perfil",     label: "Perfil",        icon: UserCircle },
 ];
 
 export function Navbar({ profile, notasMes }: NavbarProps) {
@@ -45,11 +46,13 @@ export function Navbar({ profile, notasMes }: NavbarProps) {
 
   function NavItem({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) {
     const isActive  = pathname === href || pathname.startsWith(href + "/");
-    const isNotas   = href === "/notas";
-    const isDas     = href === "/das";
-    const dasLocked = isDas && !isPremium;
+    const isNotas      = href === "/notas";
+    const isDas        = href === "/das";
+    const isEmitirNF   = href === "/emitir-nf";
+    const dasLocked    = isDas && !isPremium;
+    const nfLocked     = isEmitirNF && !isPremium;
 
-    if (dasLocked) {
+    if (dasLocked || nfLocked) {
       return (
         <Link
           href="/assinatura?upgrade=premium"
