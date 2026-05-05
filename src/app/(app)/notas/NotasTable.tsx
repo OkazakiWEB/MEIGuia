@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Pencil, Trash2, AlertTriangle, Loader2 } from "lucide-react";
+import { Pencil, Trash2, AlertTriangle, Loader2, FileCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import type { NotaFiscal } from "@/types/database";
+import { EmitirNFModal } from "@/components/ui/EmitirNFModal";
 
 interface NotasTableProps {
   notas: NotaFiscal[];
@@ -17,8 +18,8 @@ interface NotasTableProps {
 export function NotasTable({ notas }: NotasTableProps) {
   const router = useRouter();
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  // Modal de confirmação
-  const [modalNota, setModalNota] = useState<NotaFiscal | null>(null);
+  const [modalNota, setModalNota]   = useState<NotaFiscal | null>(null);
+  const [emitirNota, setEmitirNota] = useState<NotaFiscal | null>(null);
 
   async function handleDelete(nota: NotaFiscal) {
     setDeletingId(nota.id);
@@ -99,6 +100,14 @@ export function NotasTable({ notas }: NotasTableProps) {
                 </td>
                 <td className="px-2 py-2">
                   <div className="flex items-center gap-1 justify-end">
+                    {/* Emitir NF */}
+                    <button
+                      onClick={() => setEmitirNota(nota)}
+                      className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-petroleo-600 hover:bg-petroleo-50 rounded-xl transition-colors"
+                      title={nota.numero_nf ? `NF ${nota.numero_nf} — clique para ver` : "Emitir nota fiscal"}
+                    >
+                      <FileCheck className={`w-4 h-4 ${nota.numero_nf ? "text-green-500" : ""}`} />
+                    </button>
                     {/* Editar — área mínima 44x44px */}
                     <Link
                       href={`/notas/${nota.id}/editar`}
@@ -126,6 +135,23 @@ export function NotasTable({ notas }: NotasTableProps) {
           </tbody>
         </table>
       </div>
+
+      {/* Modal emissão NF */}
+      {emitirNota && (
+        <EmitirNFModal
+          notaId={emitirNota.id}
+          valor={Number(emitirNota.valor)}
+          cliente={emitirNota.cliente}
+          descricao={emitirNota.descricao}
+          numeroNfAtual={emitirNota.numero_nf}
+          onClose={() => setEmitirNota(null)}
+          onSaved={(num) => {
+            setEmitirNota(null);
+            router.refresh();
+            toast.success(`NF ${num} salva!`);
+          }}
+        />
+      )}
 
       {/* Modal de confirmação de exclusão */}
       {modalNota && (

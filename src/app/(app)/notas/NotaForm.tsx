@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { UpgradeModal } from "@/components/ui/UpgradeModal";
+import { EmitirNFModal } from "@/components/ui/EmitirNFModal";
 import toast from "react-hot-toast";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { NotaFiscal } from "@/types/database";
@@ -21,6 +22,7 @@ export function NotaForm({ userId, isPro, nota }: NotaFormProps) {
   const [upgradeModal, setUpgradeModal] = useState<{ open: boolean; notasMes: number; reason: "warning" | "limit" }>({
     open: false, notasMes: 0, reason: "warning",
   });
+  const [emitirNF, setEmitirNF] = useState<{ notaId: string; valor: number; cliente?: string | null; descricao?: string | null } | null>(null);
 
   const [form, setForm] = useState({
     valor: nota ? String(nota.valor) : "",
@@ -140,6 +142,23 @@ export function NotaForm({ userId, isPro, nota }: NotaFormProps) {
             return;
           }
         }
+
+        // Buscar o ID da nota recém-criada para o modal de emissão
+        const { data: notaCriada } = await supabase
+          .from("notas_fiscais")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("valor", valor)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (notaCriada) {
+          setLoading(false);
+          setEmitirNF({ notaId: notaCriada.id, valor, cliente: form.cliente || null, descricao: form.descricao || null });
+          return;
+        }
+
         router.push("/dashboard");
         router.refresh();
       }
@@ -150,6 +169,16 @@ export function NotaForm({ userId, isPro, nota }: NotaFormProps) {
 
   return (
     <>
+    {emitirNF && (
+      <EmitirNFModal
+        notaId={emitirNF.notaId}
+        valor={emitirNF.valor}
+        cliente={emitirNF.cliente}
+        descricao={emitirNF.descricao}
+        onClose={() => { setEmitirNF(null); router.push("/dashboard"); router.refresh(); }}
+        onSaved={() => { setEmitirNF(null); router.push("/notas"); router.refresh(); }}
+      />
+    )}
     <UpgradeModal
       open={upgradeModal.open}
       reason={upgradeModal.reason}

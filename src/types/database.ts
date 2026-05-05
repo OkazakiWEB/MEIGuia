@@ -254,6 +254,8 @@ export type Database = {
           notif_email: boolean | null
           notif_whatsapp: boolean | null
           atividade_mei: string | null
+          municipio_nome: string | null
+          municipio_uf: string | null
         }
         Insert: {
           ano_referencia?: number
@@ -278,6 +280,8 @@ export type Database = {
           notif_email?: boolean | null
           notif_whatsapp?: boolean | null
           atividade_mei?: string | null
+          municipio_nome?: string | null
+          municipio_uf?: string | null
         }
         Update: {
           ano_referencia?: number
@@ -302,6 +306,8 @@ export type Database = {
           notif_email?: boolean | null
           notif_whatsapp?: boolean | null
           atividade_mei?: string | null
+          municipio_nome?: string | null
+          municipio_uf?: string | null
         }
         Relationships: []
       }
