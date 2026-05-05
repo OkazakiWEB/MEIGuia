@@ -19,6 +19,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      das_guias: {
+        Row: {
+          id: string
+          user_id: string
+          mes_referencia: string
+          faturamento_mes: number
+          valor_das: number
+          status: string
+          data_pagamento: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          mes_referencia: string
+          faturamento_mes?: number
+          valor_das: number
+          status?: string
+          data_pagamento?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          mes_referencia?: string
+          faturamento_mes?: number
+          valor_das?: number
+          status?: string
+          data_pagamento?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "das_guias_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       das_pagamentos: {
         Row: {
           id: string

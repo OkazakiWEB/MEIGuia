@@ -5,7 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import toast from "react-hot-toast";
 import { ExternalLink, CheckCircle, Clock, AlertTriangle, Copy, Settings } from "lucide-react";
-import type { DasPagamento } from "@/types/database";
+import type { DasGuia } from "@/types/database";
 
 const MESES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -16,25 +16,14 @@ const MESES_CURTOS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out
 
 type AtividadeMei = "comercio" | "industria" | "servicos" | "misto";
 
-const DAS_BASE = 75.90;
-const DAS_ADICIONAL: Record<AtividadeMei, number> = {
-  comercio:  1.00,
-  industria: 1.00,
-  servicos:  5.00,
-  misto:     6.00,
-};
-
-function calcularDas(atividade: AtividadeMei): number {
-  return DAS_BASE + DAS_ADICIONAL[atividade];
-}
-
 interface Props {
   userId: string;
   cnpj: string | null;
-  pagamentos: DasPagamento[];
+  guias: DasGuia[];
   anoAtual: number;
   atividadeMei: AtividadeMei;
   faturamentoMesAtual: number;
+  valorDasEstimado: number;
 }
 
 function formatCnpj(cnpj: string) {
@@ -54,35 +43,23 @@ function abrirDas(cnpj: string) {
 function calcStatus(mes: number, ano: number, pago: boolean): "pago" | "atrasado" | "pendente" | "futuro" {
   if (pago) return "pago";
   const hoje = new Date();
-  const vencimento = new Date(ano, mes - 1, 20); // dia 20 do mês
+  const vencimento = new Date(ano, mes - 1, 20);
   if (hoje > vencimento) return "atrasado";
-  const mesAtual = hoje.getMonth() + 1;
-  if (mes > mesAtual) return "futuro";
+  if (mes > hoje.getMonth() + 1) return "futuro";
   return "pendente";
 }
 
-// Modal de confirmação de pagamento
 function ModalPagamento({
-  mesNome, onConfirm, onCancel, loading,
+  mesNome, valorSugerido, onConfirm, onCancel, loading,
 }: {
   mesNome: string;
-  onConfirm: (valor: number | null) => void;
+  valorSugerido: number;
+  onConfirm: (dataPag: string) => void;
   onCancel: () => void;
   loading: boolean;
 }) {
-  const [centavos, setCentavos] = useState(0);
-  const valorDisplay = centavos > 0
-    ? (centavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    : "";
-
-  function handleValor(e: React.ChangeEvent<HTMLInputElement>) {
-    const digits = e.target.value.replace(/\D/g, "");
-    setCentavos(digits ? Math.min(parseInt(digits, 10), 9999999) : 0);
-  }
-
-  function handleConfirm() {
-    onConfirm(centavos > 0 ? centavos / 100 : null);
-  }
+  const hoje = new Date().toISOString().split("T")[0];
+  const [dataPag, setDataPag] = useState(hoje);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -93,39 +70,27 @@ function ModalPagamento({
           </div>
           <div>
             <h2 className="text-base font-bold text-gray-900">Confirmar pagamento</h2>
-            <p className="text-xs text-gray-500">DAS de {mesNome}</p>
+            <p className="text-xs text-gray-500">
+              DAS de {mesNome} · R$ {valorSugerido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+            </p>
           </div>
         </div>
-
         <div>
-          <label className="text-sm font-medium text-gray-700 block mb-1.5">
-            Valor pago <span className="text-gray-400 font-normal">(opcional)</span>
-          </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">R$</span>
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="0,00"
-              value={valorDisplay}
-              onChange={handleValor}
-              className="input pl-9"
-              autoComplete="off"
-              autoFocus
-            />
-          </div>
-          <p className="text-xs text-gray-400 mt-1">
-            Informe quanto pagou para manter o histórico completo. Você pode deixar em branco.
-          </p>
+          <label className="text-sm font-medium text-gray-700 block mb-1.5">Data do pagamento</label>
+          <input
+            type="date"
+            className="input"
+            value={dataPag}
+            onChange={(e) => setDataPag(e.target.value)}
+            max={hoje}
+            autoFocus
+          />
         </div>
-
         <div className="flex gap-3 pt-1">
-          <button onClick={onCancel} disabled={loading} className="btn-secondary flex-1 text-sm">
-            Cancelar
-          </button>
+          <button onClick={onCancel} disabled={loading} className="btn-secondary flex-1 text-sm">Cancelar</button>
           <button
-            onClick={handleConfirm}
-            disabled={loading}
+            onClick={() => onConfirm(dataPag)}
+            disabled={loading || !dataPag}
             className="flex-1 py-2 px-4 rounded-xl font-semibold text-sm text-white bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? <span className="animate-spin">⏳</span> : "Confirmar"}
@@ -136,52 +101,55 @@ function ModalPagamento({
   );
 }
 
-export function DasPageClient({ userId, cnpj, pagamentos, anoAtual, atividadeMei, faturamentoMesAtual }: Props) {
-  const valorDasEstimado = calcularDas(atividadeMei);
-  const [lista, setLista] = useState<DasPagamento[]>(pagamentos);
+export function DasPageClient({ userId, cnpj, guias, anoAtual, atividadeMei, faturamentoMesAtual, valorDasEstimado }: Props) {
+  const [lista, setLista] = useState<DasGuia[]>(guias);
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const [modal, setModal] = useState<{ mes: number; competencia: string } | null>(null);
-  const [confirmarDesfazer, setConfirmarDesfazer] = useState<string | null>(null); // id do registro
-
-  // Monta os 12 meses com dados do banco ou defaults
-  const meses = Array.from({ length: 12 }, (_, i) => {
-    const mes = i + 1;
-    const competencia = `${anoAtual}-${String(mes).padStart(2, "0")}-01`;
-    const registro = lista.find((p) => p.competencia.startsWith(`${anoAtual}-${String(mes).padStart(2, "0")}`));
-    const status = calcStatus(mes, anoAtual, registro?.status === "pago");
-    return { mes, competencia, registro, status };
-  });
+  const [modal, setModal]         = useState<{ mes: number; mesRef: string; guia: DasGuia | null } | null>(null);
+  const [desfazerId, setDesfazerIt] = useState<string | null>(null);
+  const [cnpjCopiado, setCnpjCopiado] = useState(false);
 
   const mesAtual = new Date().getMonth() + 1;
 
-  async function confirmarPagamento(valorPago: number | null) {
-    if (!modal || !cnpj) return;
-    const { mes, competencia } = modal;
-    setLoadingId(competencia);
-    const supabase = createClient();
-    const hoje = new Date().toISOString().split("T")[0];
-    const vencimento = `${anoAtual}-${String(mes).padStart(2, "0")}-20`;
-    const existente = lista.find((p) => p.competencia.startsWith(competencia.slice(0, 7)));
+  // Monta os 12 meses fundindo com guias do banco
+  const meses = Array.from({ length: 12 }, (_, i) => {
+    const mes    = i + 1;
+    const mesRef = `${anoAtual}-${String(mes).padStart(2, "0")}-01`;
+    const guia   = lista.find((g) => g.mes_referencia.startsWith(`${anoAtual}-${String(mes).padStart(2, "0")}`));
+    const status = calcStatus(mes, anoAtual, guia?.status === "pago");
+    return { mes, mesRef, guia, status };
+  });
 
-    if (existente) {
+  async function confirmarPagamento(dataPag: string) {
+    if (!modal) return;
+    const { mes, mesRef, guia } = modal;
+    setLoadingId(mesRef);
+    const supabase = createClient();
+
+    if (guia) {
       const { error } = await supabase
-        .from("das_pagamentos")
-        .update({ status: "pago", pago_em: hoje, valor_pago: valorPago })
-        .eq("id", existente.id);
+        .from("das_guias")
+        .update({ status: "pago", data_pagamento: dataPag })
+        .eq("id", guia.id);
       if (error) { toast.error("Erro ao atualizar."); setLoadingId(null); setModal(null); return; }
-      setLista((prev) => prev.map((p) => p.id === existente.id
-        ? { ...p, status: "pago", pago_em: hoje, valor_pago: valorPago } : p));
+      setLista((prev) => prev.map((g) => g.id === guia.id ? { ...g, status: "pago", data_pagamento: dataPag } : g));
     } else {
       const { data, error } = await supabase
-        .from("das_pagamentos")
-        .insert({ user_id: userId, competencia, vencimento, status: "pago", pago_em: hoje, valor_pago: valorPago })
+        .from("das_guias")
+        .insert({
+          user_id: userId,
+          mes_referencia: mesRef,
+          faturamento_mes: mes === mesAtual ? faturamentoMesAtual : 0,
+          valor_das: valorDasEstimado,
+          status: "pago",
+          data_pagamento: dataPag,
+        })
         .select()
         .single();
       if (error) { toast.error("Erro ao registrar."); setLoadingId(null); setModal(null); return; }
-      setLista((prev) => [...prev, data as DasPagamento]);
+      setLista((prev) => [...prev, data as DasGuia]);
     }
 
-    toast.success("DAS marcado como pago!");
+    toast.success(`DAS de ${MESES[mes - 1]} marcado como pago!`);
     setLoadingId(null);
     setModal(null);
   }
@@ -190,16 +158,15 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual, atividadeMei
     setLoadingId(id);
     const supabase = createClient();
     const { error } = await supabase
-      .from("das_pagamentos")
-      .update({ status: "pendente", pago_em: null, valor_pago: null })
+      .from("das_guias")
+      .update({ status: "pendente", data_pagamento: null })
       .eq("id", id);
     if (error) { toast.error("Erro ao atualizar."); setLoadingId(null); return; }
-    setLista((prev) => prev.map((p) => p.id === id ? { ...p, status: "pendente", pago_em: null, valor_pago: null } : p));
+    setLista((prev) => prev.map((g) => g.id === id ? { ...g, status: "pendente", data_pagamento: null } : g));
     toast.success("Registro atualizado.");
     setLoadingId(null);
+    setDesfazerIt(null);
   }
-
-  const [cnpjCopiado, setCnpjCopiado] = useState(false);
 
   function copiarCnpj() {
     if (!cnpj) return;
@@ -208,7 +175,6 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual, atividadeMei
     setTimeout(() => setCnpjCopiado(false), 2000);
   }
 
-  // ── Sem CNPJ cadastrado ──
   if (!cnpj) {
     return (
       <div className="max-w-2xl mx-auto">
@@ -219,16 +185,15 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual, atividadeMei
             <p className="text-gray-500 text-sm">Controle mensal do seu Documento de Arrecadação</p>
           </div>
         </div>
-
         <div className="card border-2 border-dashed border-amber-200 bg-amber-50 text-center py-12 px-6">
           <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto mb-4" />
           <h2 className="text-lg font-bold text-gray-800 mb-2">CNPJ não cadastrado</h2>
           <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
-            Para usar o painel DAS você precisa informar seu CNPJ nas configurações.
+            Para usar o painel DAS você precisa informar seu CNPJ no perfil.
           </p>
-          <Link href="/configuracoes" className="btn-primary inline-flex items-center gap-2">
+          <Link href="/perfil" className="btn-primary inline-flex items-center gap-2">
             <Settings className="w-4 h-4" />
-            Ir para Configurações
+            Ir para Perfil
           </Link>
         </div>
       </div>
@@ -238,8 +203,8 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual, atividadeMei
   const pagoCount     = meses.filter((m) => m.status === "pago").length;
   const atrasadoCount = meses.filter((m) => m.status === "atrasado").length;
   const totalPagoAno  = lista
-    .filter((p) => p.status === "pago" && p.valor_pago)
-    .reduce((sum, p) => sum + Number(p.valor_pago), 0);
+    .filter((g) => g.status === "pago")
+    .reduce((sum, g) => sum + Number(g.valor_das), 0);
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -292,14 +257,10 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual, atividadeMei
               {atividadeMei === "misto" ? "Comércio+Serviços" :
                atividadeMei === "comercio" ? "Comércio" :
                atividadeMei === "industria" ? "Indústria" : "Serviços"}
-              {" "}· faturamento registrado:{" "}
-              R$ {faturamentoMesAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              {" "}· faturamento registrado: R$ {faturamentoMesAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </p>
           </div>
-          <Link
-            href="/perfil"
-            className="text-xs text-petroleo-500 hover:text-petroleo-700 underline flex-shrink-0"
-          >
+          <Link href="/perfil" className="text-xs text-petroleo-500 hover:text-petroleo-700 underline flex-shrink-0">
             Alterar atividade
           </Link>
         </div>
@@ -332,7 +293,7 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual, atividadeMei
         </div>
       </div>
 
-      {/* ── Timeline visual de 12 meses ── */}
+      {/* ── Timeline visual ── */}
       <div className="card">
         <p className="text-sm font-semibold text-gray-700 mb-4">Visão geral {anoAtual}</p>
         <div className="grid grid-cols-6 sm:grid-cols-12 gap-1.5">
@@ -359,22 +320,17 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual, atividadeMei
 
       {/* ── Lista de meses ── */}
       <div className="space-y-3">
-        {meses.map(({ mes, competencia, registro, status }) => {
-          const isMesAtual = mes === mesAtual;
-          const vencimento = `20/${String(mes).padStart(2, "0")}/${anoAtual}`;
+        {meses.map(({ mes, mesRef, guia, status }) => {
+          if (status === "futuro") return null;
+          const isMesAtual   = mes === mesAtual;
+          const vencimento   = `20/${String(mes).padStart(2, "0")}/${anoAtual}`;
           const diasRestantes = Math.ceil(
             (new Date(anoAtual, mes - 1, 20).getTime() - Date.now()) / 86400000
           );
 
-          if (status === "futuro") return null;
-
           return (
-            <div
-              key={mes}
-              className={`card transition-shadow ${isMesAtual ? "ring-2 ring-petroleo-400" : ""}`}
-            >
+            <div key={mes} className={`card transition-shadow ${isMesAtual ? "ring-2 ring-petroleo-400" : ""}`}>
               <div className="flex items-center gap-4">
-                {/* Status icon */}
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
                   ${status === "pago"     ? "bg-green-100" :
                     status === "atrasado" ? "bg-red-100" :
@@ -386,7 +342,6 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual, atividadeMei
                     : <Clock className="w-5 h-5 text-amber-500" />}
                 </div>
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-gray-900">{MESES[mes - 1]} {anoAtual}</p>
@@ -397,17 +352,21 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual, atividadeMei
                     )}
                   </div>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {status === "pago" && registro?.pago_em
-                      ? `Pago em ${new Date(registro.pago_em + "T00:00:00").toLocaleDateString("pt-BR")}${registro.valor_pago ? ` · R$ ${Number(registro.valor_pago).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : ""}`
+                    {status === "pago" && guia?.data_pagamento
+                      ? `Pago em ${new Date(guia.data_pagamento + "T00:00:00").toLocaleDateString("pt-BR")} · R$ ${Number(guia.valor_das).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
                       : status === "atrasado"
                       ? `Venceu em ${vencimento}`
                       : diasRestantes > 0
                       ? `Vence em ${vencimento} · ${diasRestantes} dias`
                       : `Vence hoje — ${vencimento}`}
                   </p>
+                  {guia && guia.faturamento_mes > 0 && (
+                    <p className="text-xs text-gray-300 mt-0.5">
+                      Faturamento: R$ {Number(guia.faturamento_mes).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </p>
+                  )}
                 </div>
 
-                {/* Ações */}
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {status !== "pago" && (
                     <button
@@ -420,37 +379,33 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual, atividadeMei
                   )}
                   {status !== "pago" ? (
                     <button
-                      onClick={() => setModal({ mes, competencia })}
-                      disabled={loadingId === competencia}
+                      onClick={() => setModal({ mes, mesRef, guia: guia ?? null })}
+                      disabled={loadingId === mesRef}
                       className="text-xs bg-green-600 hover:bg-green-700 text-white rounded-lg px-3 py-1.5 font-medium transition-colors disabled:opacity-50"
                     >
-                      {loadingId === competencia ? "..." : "Paguei"}
+                      {loadingId === mesRef ? "..." : "Paguei"}
                     </button>
                   ) : (
-                    confirmarDesfazer === registro?.id ? (
+                    desfazerId === guia?.id ? (
                       <div className="flex items-center gap-1">
                         <span className="text-xs text-gray-500">Tem certeza?</span>
                         <button
-                          onClick={() => { registro && desmarcarPago(registro.id); setConfirmarDesfazer(null); }}
-                          disabled={loadingId === registro?.id}
+                          onClick={() => guia && desmarcarPago(guia.id)}
+                          disabled={loadingId === guia?.id}
                           className="text-xs text-red-600 font-medium px-2 py-1 hover:underline"
-                        >
-                          Sim
-                        </button>
+                        >Sim</button>
                         <button
-                          onClick={() => setConfirmarDesfazer(null)}
+                          onClick={() => setDesfazerIt(null)}
                           className="text-xs text-gray-400 px-2 py-1 hover:underline"
-                        >
-                          Não
-                        </button>
+                        >Não</button>
                       </div>
                     ) : (
                       <button
-                        onClick={() => registro && setConfirmarDesfazer(registro.id)}
-                        disabled={loadingId === registro?.id}
+                        onClick={() => guia && setDesfazerIt(guia.id)}
+                        disabled={loadingId === guia?.id}
                         className="text-xs text-gray-400 hover:text-red-500 transition-colors px-2 py-1.5"
                       >
-                        {loadingId === registro?.id ? "..." : "Desfazer"}
+                        {loadingId === guia?.id ? "..." : "Desfazer"}
                       </button>
                     )
                   )}
@@ -467,11 +422,11 @@ export function DasPageClient({ userId, cnpj, pagamentos, anoAtual, atividadeMei
         Mantenha seus pagamentos em dia para não perder os benefícios do MEI.
       </p>
 
-      {/* ── Modal de pagamento ── */}
       {modal && (
         <ModalPagamento
           mesNome={MESES[modal.mes - 1]}
-          loading={loadingId === modal.competencia}
+          valorSugerido={valorDasEstimado}
+          loading={loadingId === modal.mesRef}
           onConfirm={confirmarPagamento}
           onCancel={() => setModal(null)}
         />
