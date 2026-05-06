@@ -12,7 +12,6 @@ import { EmitirNFModal } from "@/components/ui/EmitirNFModal";
 
 interface NotasTableProps {
   notas: NotaFiscal[];
-  isPro: boolean;
 }
 
 export function NotasTable({ notas }: NotasTableProps) {

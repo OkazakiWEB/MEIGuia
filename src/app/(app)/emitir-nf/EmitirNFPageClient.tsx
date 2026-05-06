@@ -45,9 +45,11 @@ export function EmitirNFPageClient({ cnpj, municipioNome: municipioInicial, nome
 
       // Busca notas sem número NF do ano atual
       const ano = new Date().getFullYear();
+      const { data: { user } } = await supabase.auth.getUser();
       const { data } = await supabase
         .from("notas_fiscais")
         .select("*")
+        .eq("user_id", user?.id ?? "")
         .gte("data", `${ano}-01-01`)
         .lte("data", `${ano}-12-31`)
         .order("data", { ascending: false });

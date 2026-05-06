@@ -4,6 +4,20 @@ import { createClient } from "@/lib/supabase/server";
 const ABACATEPAY_API = "https://api.abacatepay.com/v1";
 const PRO_PRICE_CENTAVOS = 1490; // R$ 14,90
 
+function validarCPF(cpf: string): boolean {
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(cpf[i]) * (10 - i);
+  let r = (sum * 10) % 11;
+  if (r === 10 || r === 11) r = 0;
+  if (r !== parseInt(cpf[9])) return false;
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(cpf[i]) * (11 - i);
+  r = (sum * 10) % 11;
+  if (r === 10 || r === 11) r = 0;
+  return r === parseInt(cpf[10]);
+}
+
 /**
  * POST /api/abacatepay/checkout
  * Cria uma cobrança PIX via Abacatepay para assinar o plano Pro (30 dias).
@@ -44,8 +58,8 @@ export async function POST(request: NextRequest) {
     // body inválido
   }
 
-  if (!cpf) {
-    return NextResponse.json({ error: "CPF é obrigatório." }, { status: 400 });
+  if (!cpf || !validarCPF(cpf)) {
+    return NextResponse.json({ error: "CPF inválido. Verifique e tente novamente." }, { status: 400 });
   }
   if (!phone) {
     return NextResponse.json({ error: "Celular é obrigatório." }, { status: 400 });

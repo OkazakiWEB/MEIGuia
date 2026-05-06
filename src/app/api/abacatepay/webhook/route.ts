@@ -9,14 +9,16 @@ import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
  * Protegido por ABACATEPAY_WEBHOOK_SECRET (token enviado no header).
  */
 export async function POST(request: NextRequest) {
-  // Verificar token de segurança do webhook
+  // Verificar token de segurança do webhook — obrigatório
   const webhookToken = process.env.ABACATEPAY_WEBHOOK_SECRET;
-  if (webhookToken) {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || authHeader !== `Bearer ${webhookToken}`) {
-      console.warn("[AbacatePay Webhook] Token inválido");
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    }
+  if (!webhookToken) {
+    console.error("[AbacatePay Webhook] ABACATEPAY_WEBHOOK_SECRET não configurado — endpoint bloqueado");
+    return NextResponse.json({ error: "Serviço indisponível" }, { status: 503 });
+  }
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader || authHeader !== `Bearer ${webhookToken}`) {
+    console.warn("[AbacatePay Webhook] Token inválido");
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
   let payload: Record<string, unknown>;

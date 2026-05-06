@@ -119,7 +119,7 @@ export default async function NotasPage({
 
       {/* Tabela */}
       <div className="card p-0 overflow-hidden">
-        <NotasTable notas={notas || []} isPro={isPro} />
+        <NotasTable notas={notas || []} />
       </div>
 
       {/* Paginação */}
