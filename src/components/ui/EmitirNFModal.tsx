@@ -135,7 +135,7 @@ export function EmitirNFModal({ notaId, valor, cliente, descricao, numeroNfAtual
             <ol className="space-y-2">
               {portal.instrucoes.map((step, i) => (
                 <li key={i} className="flex gap-3 text-sm text-gray-600">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-petroleo-100 text-petroleo-700 text-xs font-bold flex items-center justify-center mt-0.5">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-brand-100 text-brand-600 text-xs font-bold flex items-center justify-center mt-0.5">
                     {i + 1}
                   </span>
                   {step}
@@ -184,7 +184,7 @@ export function EmitirNFModal({ notaId, valor, cliente, descricao, numeroNfAtual
           {/* Botão abrir portal */}
           <button
             onClick={abrirPortal}
-            className="w-full flex items-center justify-center gap-2 bg-petroleo-700 hover:bg-petroleo-800 text-white font-semibold py-3 rounded-xl transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 text-white font-semibold py-3 rounded-xl transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
             {portalAberto ? "Abrir portal novamente" : `Abrir ${portal.sistema}`}

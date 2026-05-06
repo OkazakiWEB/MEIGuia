@@ -89,8 +89,8 @@ export function ContadorAccess({ isPro }: { isPro: boolean }) {
     return (
       <div className="card space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-petroleo-100 rounded-lg flex items-center justify-center">
-            <Users className="w-5 h-5 text-petroleo-600" />
+          <div className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
+            <Users className="w-5 h-5 text-brand-500" />
           </div>
           <div>
             <h3 className="font-bold text-gray-900">Modo Contador</h3>
@@ -114,8 +114,8 @@ export function ContadorAccess({ isPro }: { isPro: boolean }) {
 
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-petroleo-100 rounded-lg flex items-center justify-center">
-          <Users className="w-5 h-5 text-petroleo-600" />
+        <div className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
+          <Users className="w-5 h-5 text-brand-500" />
         </div>
         <div>
           <h3 className="font-bold text-gray-900">Modo Contador</h3>
@@ -124,9 +124,9 @@ export function ContadorAccess({ isPro }: { isPro: boolean }) {
       </div>
 
       {/* Explicação */}
-      <div className="bg-petroleo-50 border border-petroleo-100 rounded-xl px-4 py-3 flex items-start gap-2.5">
-        <ShieldCheck className="w-4 h-4 text-petroleo-600 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-petroleo-700 leading-relaxed">
+      <div className="bg-brand-50 border border-brand-100 rounded-xl px-4 py-3 flex items-start gap-2.5">
+        <ShieldCheck className="w-4 h-4 text-brand-500 flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-gray-600 leading-relaxed">
           O contador <strong>só visualiza</strong> — não pode editar, excluir nem criar nada.
           Você pode revogar o acesso a qualquer momento.
         </p>

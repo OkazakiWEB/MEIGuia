@@ -180,7 +180,7 @@ export function EmitirNFPageClient({ cnpj, municipioNome: municipioInicial, nome
         <ol className="space-y-2">
           {portal.instrucoes.map((step, i) => (
             <li key={i} className="flex gap-3 text-sm text-gray-600">
-              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-petroleo-100 text-petroleo-700 text-xs font-bold flex items-center justify-center mt-0.5">
+              <span className="flex-shrink-0 w-5 h-5 rounded-full bg-brand-100 text-brand-600 text-xs font-bold flex items-center justify-center mt-0.5">
                 {i + 1}
               </span>
               {step}
@@ -191,7 +191,7 @@ export function EmitirNFPageClient({ cnpj, municipioNome: municipioInicial, nome
         <button
           onClick={abrirPortal}
           disabled={!cnpj}
-          className="flex items-center justify-center gap-2 w-full bg-petroleo-700 hover:bg-petroleo-800 disabled:opacity-40 text-white font-semibold py-3 rounded-xl transition-colors"
+          className="flex items-center justify-center gap-2 w-full bg-brand-500 hover:bg-brand-600 disabled:opacity-40 text-white font-semibold py-3 rounded-xl transition-colors"
         >
           <ExternalLink className="w-4 h-4" />
           Abrir {portal.sistema}

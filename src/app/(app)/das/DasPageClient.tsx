@@ -245,14 +245,14 @@ export function DasPageClient({ userId, cnpj, guias, anoAtual, atividadeMei, fat
       </div>
 
       {/* ── DAS estimado do mês ── */}
-      <div className="card bg-petroleo-50 border border-petroleo-200">
+      <div className="card bg-brand-50 border border-brand-200">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <p className="text-xs text-petroleo-500 font-medium uppercase tracking-wide mb-1">DAS estimado — mês atual</p>
-            <p className="text-3xl font-bold text-petroleo-900">
+            <p className="text-xs text-brand-500 font-medium uppercase tracking-wide mb-1">DAS estimado — mês atual</p>
+            <p className="text-3xl font-bold text-gray-900">
               R$ {valorDasEstimado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-petroleo-400 mt-1">
+            <p className="text-xs text-gray-500 mt-1">
               Base INSS R$75,90 + encargo{" "}
               {atividadeMei === "misto" ? "Comércio+Serviços" :
                atividadeMei === "comercio" ? "Comércio" :
@@ -260,11 +260,11 @@ export function DasPageClient({ userId, cnpj, guias, anoAtual, atividadeMei, fat
               {" "}· faturamento registrado: R$ {faturamentoMesAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
             </p>
           </div>
-          <Link href="/perfil" className="text-xs text-petroleo-500 hover:text-petroleo-700 underline flex-shrink-0">
+          <Link href="/perfil" className="text-xs text-brand-500 hover:text-brand-700 underline flex-shrink-0">
             Alterar atividade
           </Link>
         </div>
-        <p className="text-[11px] text-petroleo-400 mt-3 border-t border-petroleo-200 pt-3">
+        <p className="text-[11px] text-gray-400 mt-3 border-t border-brand-100 pt-3">
           ⚠️ Valor estimado com base na tabela MEI 2025. O valor oficial é gerado pelo portal da Receita Federal.
         </p>
       </div>
@@ -329,7 +329,7 @@ export function DasPageClient({ userId, cnpj, guias, anoAtual, atividadeMei, fat
           );
 
           return (
-            <div key={mes} className={`card transition-shadow ${isMesAtual ? "ring-2 ring-petroleo-400" : ""}`}>
+            <div key={mes} className={`card transition-shadow ${isMesAtual ? "ring-2 ring-brand-400" : ""}`}>
               <div className="flex items-center gap-4">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
                   ${status === "pago"     ? "bg-green-100" :
@@ -346,7 +346,7 @@ export function DasPageClient({ userId, cnpj, guias, anoAtual, atividadeMei, fat
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-gray-900">{MESES[mes - 1]} {anoAtual}</p>
                     {isMesAtual && (
-                      <span className="text-[11px] bg-petroleo-100 text-petroleo-700 font-semibold px-2 py-0.5 rounded-full">
+                      <span className="text-[11px] bg-brand-100 text-brand-600 font-semibold px-2 py-0.5 rounded-full">
                         Mês atual
                       </span>
                     )}

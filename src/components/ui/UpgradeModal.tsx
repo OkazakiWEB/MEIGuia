@@ -35,7 +35,7 @@ export function UpgradeModal({ open, onClose, reason, notasMes }: UpgradeModalPr
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header colorido */}
-        <div className="bg-gradient-to-br from-petroleo-600 to-agua-600 p-6 text-white relative">
+        <div className="bg-gradient-to-br from-brand-500 to-vinho-600 p-6 text-white relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-1.5 hover:bg-white/20 rounded-lg transition-colors"

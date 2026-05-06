@@ -172,7 +172,7 @@ export function OnboardingModal({ userId, userName }: OnboardingModalProps) {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
 
         {/* Header */}
-        <div className="bg-gradient-to-br from-petroleo-600 to-petroleo-800 px-6 pt-6 pb-5 text-white">
+        <div className="bg-gradient-to-br from-brand-500 to-vinho-700 px-6 pt-6 pb-5 text-white">
           <div className="flex items-center gap-3 mb-1">
             {(step !== "entrada" && step !== "direto") && (
               <button
@@ -181,13 +181,13 @@ export function OnboardingModal({ userId, userName }: OnboardingModalProps) {
                   if (step === "valor")      setStep("freq");
                   if (step === "estimativa") setStep("valor");
                 }}
-                className="text-petroleo-300 hover:text-white transition -ml-1"
+                className="text-white/60 hover:text-white transition -ml-1"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
             )}
             <div className="flex-1">
-              <p className="text-xs text-petroleo-300">Olá, {firstName}! 👋</p>
+              <p className="text-xs text-white/70">Olá, {firstName}! 👋</p>
               <p className="text-sm font-bold">
                 {step === "entrada"    && "Vamos configurar seu dashboard"}
                 {step === "direto"     && "Qual foi o total até agora?"}
@@ -203,7 +203,7 @@ export function OnboardingModal({ userId, userName }: OnboardingModalProps) {
           {["freq", "valor", "estimativa"].includes(step) && (
             <div className="flex gap-1 mt-3">
               {[1, 2, 3].map((n) => (
-                <div key={n} className={`flex-1 h-1 rounded-full transition-all ${n <= currentStepNum ? "bg-white" : "bg-petroleo-600"}`} />
+                <div key={n} className={`flex-1 h-1 rounded-full transition-all ${n <= currentStepNum ? "bg-white" : "bg-white/25"}`} />
               ))}
             </div>
           )}

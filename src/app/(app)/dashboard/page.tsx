@@ -172,14 +172,14 @@ export default async function DashboardPage() {
               const content = (
                 <div className={`flex items-start gap-3 p-3 rounded-xl transition-colors ${
                   step.done
-                    ? "bg-green-50"
+                    ? "bg-brand-50"
                     : step.href ? "bg-white border border-gray-100 hover:border-brand-200 hover:bg-brand-50/30 cursor-pointer" : "bg-white border border-gray-100"
                 }`}>
                   {step.done
-                    ? <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    ? <CheckCircle2 className="w-5 h-5 text-brand-500 flex-shrink-0 mt-0.5" />
                     : <Circle className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />}
                   <div className="min-w-0">
-                    <p className={`text-sm font-medium ${step.done ? "text-green-700 line-through" : "text-gray-800"}`}>
+                    <p className={`text-sm font-medium ${step.done ? "text-brand-700 line-through" : "text-gray-800"}`}>
                       {step.label}
                     </p>
                     <p className="text-xs text-gray-400 mt-0.5">{step.sub}</p>
@@ -237,7 +237,7 @@ export default async function DashboardPage() {
           label="Registrado este mês"
           value={totalMes > 0 ? formatCurrency(totalMes) : "—"}
           sublabel={totalMes === 0 ? "Nenhuma nota este mês" : undefined}
-          icon={<Calendar className="w-5 h-5 text-green-600" />}
+          icon={<Calendar className="w-5 h-5 text-brand-500" />}
         />
         <MetricCard
           label="Total no ano"
@@ -374,10 +374,10 @@ export default async function DashboardPage() {
               </div>
             </div>
           </div>
-          <div className="card border-green-100">
+          <div className="card border-brand-100">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-green-600" />
+              <div className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-brand-500" />
               </div>
               <div>
                 <p className="text-sm text-gray-500">Sugestão para os próximos meses</p>
@@ -395,7 +395,7 @@ export default async function DashboardPage() {
               <p className="text-sm text-gray-500">Previsão anual</p>
               <p className="text-2xl font-bold text-gray-300">R$ ——</p>
             </div>
-            <div className="card border-green-100 opacity-60">
+            <div className="card border-brand-100 opacity-60">
               <p className="text-sm text-gray-500">Sugestão mensal</p>
               <p className="text-2xl font-bold text-gray-300">R$ ——/mês</p>
             </div>

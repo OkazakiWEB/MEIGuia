@@ -103,7 +103,7 @@ export function NotasTable({ notas }: NotasTableProps) {
                     {/* Emitir NF */}
                     <button
                       onClick={() => setEmitirNota(nota)}
-                      className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-petroleo-600 hover:bg-petroleo-50 rounded-xl transition-colors"
+                      className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-brand-500 hover:bg-brand-50 rounded-xl transition-colors"
                       title={nota.numero_nf ? `NF ${nota.numero_nf} — clique para ver` : "Emitir nota fiscal"}
                     >
                       <FileCheck className={`w-4 h-4 ${nota.numero_nf ? "text-green-500" : ""}`} />

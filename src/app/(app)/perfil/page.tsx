@@ -244,7 +244,7 @@ export default function PerfilPage() {
             {avatarUrl ? (
               <img src={avatarUrl} alt="Avatar" className="w-16 h-16 rounded-full object-cover border-2 border-gray-200" />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-petroleo-600 flex items-center justify-center text-white text-xl font-bold border-2 border-gray-200">
+              <div className="w-16 h-16 rounded-full bg-brand-500 flex items-center justify-center text-white text-xl font-bold border-2 border-gray-200">
                 {initials}
               </div>
             )}
@@ -313,7 +313,7 @@ export default function PerfilPage() {
                 onClick={() => setAtividadeMei(value)}
                 className={`text-left px-3 py-2.5 rounded-xl border text-sm transition-colors ${
                   atividadeMei === value
-                    ? "border-petroleo-500 bg-petroleo-50 text-petroleo-800"
+                    ? "border-brand-400 bg-brand-50 text-brand-800"
                     : "border-gray-200 hover:border-gray-300 text-gray-700"
                 }`}
               >

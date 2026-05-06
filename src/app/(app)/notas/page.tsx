@@ -57,7 +57,7 @@ export default async function NotasPage({
             <>
               <a
                 href={`/api/relatorio?ano=${ano}`}
-                className="btn-secondary text-sm px-3 flex items-center gap-1.5 border-petroleo-300 text-petroleo-700 hover:bg-petroleo-50"
+                className="btn-secondary text-sm px-3 flex items-center gap-1.5 border-brand-200 text-brand-600 hover:bg-brand-50"
                 title={`Baixar Resumo Anual MEI ${ano} em PDF`}
               >
                 <FileBarChart2 className="w-4 h-4" />

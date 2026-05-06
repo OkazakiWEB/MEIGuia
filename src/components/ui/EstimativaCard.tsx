@@ -17,16 +17,16 @@ export function EstimativaCard({ estimativa, notasReais, total }: EstimativaCard
   if (dispensado) return null;
 
   return (
-    <div className="rounded-xl border border-petroleo-200 bg-white overflow-hidden shadow-sm">
+    <div className="rounded-xl border border-brand-200 bg-white overflow-hidden shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-petroleo-50 border-b border-petroleo-100">
+      <div className="flex items-center justify-between px-4 py-3 bg-brand-50 border-b border-brand-100">
         <div className="flex items-center gap-2">
-          <Info className="w-4 h-4 text-petroleo-600 flex-shrink-0" />
-          <p className="text-sm font-semibold text-petroleo-800">Como esse valor foi calculado</p>
+          <Info className="w-4 h-4 text-brand-500 flex-shrink-0" />
+          <p className="text-sm font-semibold text-gray-800">Como esse valor foi calculado</p>
         </div>
         <button
           onClick={() => setDispensado(true)}
-          className="text-petroleo-400 hover:text-petroleo-600 transition p-1 -mr-1 rounded"
+          className="text-gray-400 hover:text-gray-600 transition p-1 -mr-1 rounded"
           aria-label="Fechar"
         >
           <X className="w-4 h-4" />
