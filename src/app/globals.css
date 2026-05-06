@@ -14,6 +14,10 @@
 [data-reveal-stagger].in>*:nth-child(5){transition-delay:320ms}
 [data-reveal-stagger].in>*:nth-child(6){transition-delay:400ms}
 
+/* PWA install banner animation */
+@keyframes slide-up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.animate-slide-up{animation:slide-up .3s cubic-bezier(.22,1,.36,1) both}
+
 /* Fontes carregadas via next/font no layout.tsx — self-hosted, sem round-trip externo */
 
 @layer base {

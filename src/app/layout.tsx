@@ -57,7 +57,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" className={`${montserrat.variable} ${raleway.variable} ${inter.variable} ${fraunces.variable}`}>
       <head>
         <meta name="theme-color" content="#1A6B8A" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <meta name="mobile-web-app-capable" content="yes" />
 
         {/* Google Analytics */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-0ZL0SXD3SQ" />
@@ -101,7 +103,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <script
           dangerouslySetInnerHTML={{
-            __html: `if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }`,
+            __html: `
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js');
+              }
+              window.__pwaPrompt = null;
+              window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                window.__pwaPrompt = e;
+                window.dispatchEvent(new Event('pwa-prompt-ready'));
+              });
+            `,
           }}
         />
         <Toaster

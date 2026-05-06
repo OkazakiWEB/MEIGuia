@@ -11,21 +11,22 @@ function GaugeCard() {
 
   useEffect(() => {
     const total = 81_000;
-    const used  = 50_220;
-    const pct   = used / total; // ~0.62
-    const C     = 534;          // 2π×85
+    const used  = 67_400;
+    const pct   = used / total;
+    const C     = 534;
 
     const t = setTimeout(() => {
       if (fillRef.current) {
         fillRef.current.style.strokeDashoffset = String(C * (1 - pct));
       }
       let n = 0;
+      const target = Math.round(pct * 100);
       const step = setInterval(() => {
-        n = Math.min(n + 2, Math.round(pct * 100));
+        n = Math.min(n + 1, target);
         if (pctRef.current) pctRef.current.textContent = `${n}%`;
-        if (n >= Math.round(pct * 100)) clearInterval(step);
-      }, 28);
-    }, 400);
+        if (n >= target) clearInterval(step);
+      }, 22);
+    }, 500);
 
     return () => clearTimeout(t);
   }, []);
@@ -33,37 +34,40 @@ function GaugeCard() {
   return (
     <div className={styles.gaugeCard}>
       <div className={styles.gaugeCardHeader}>
-        <span className={styles.gaugeCardYear}>Limite 2025</span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
+        <span>Controle de Limite</span>
+        <span className={styles.gaugeCardYear}>2025</span>
       </div>
 
       <div className={styles.gaugeWrap}>
-        <svg className={styles.gaugeSvg} viewBox="0 0 200 200" aria-label="62% do limite utilizado">
+        <svg className={styles.gaugeSvg} viewBox="0 0 200 200" aria-label="83% do limite utilizado">
           <circle cx="100" cy="100" r="85" className={styles.gaugeTrack}/>
           <circle cx="100" cy="100" r="85" ref={fillRef} className={styles.gaugeFill}/>
         </svg>
         <div className={styles.gaugeLabel}>
           <span ref={pctRef} className={styles.gaugePct}>0%</span>
-          <span className={styles.gaugeCaption}>utilizado</span>
+          <span className={styles.gaugeCaption}>do limite</span>
         </div>
       </div>
 
       <div className={styles.gaugeAmounts}>
         <div>
-          <p className={styles.gaugeAmountMain}>R$ 50.220</p>
-          <p className={styles.gaugeAmountSub}>faturado em 2025</p>
+          <p className={styles.gaugeAmountMain}>R$ 67.400</p>
+          <p className={styles.gaugeAmountSub}>faturado</p>
         </div>
-        <div style={{textAlign:"right"}}>
+        <div className={styles.gaugeAmountRight}>
           <p className={styles.gaugeAmountMain}>R$ 81.000</p>
-          <p className={styles.gaugeAmountSub}>limite anual</p>
+          <p className={styles.gaugeAmountSub}>limite</p>
         </div>
       </div>
 
+      <div className={styles.gaugeAlerta}>
+        <span>⚠️</span>
+        <span>Atenção! Você pode faturar apenas mais <strong>R$ 13.600</strong> este ano.</span>
+      </div>
+
       <div className={styles.gaugeStatus}>
-        <span className={styles.gaugeStatusIcon}>✓</span>
-        Dentro do limite — você pode faturar mais R$ 30.780
+        <span className={styles.gaugeStatusIcon}>!</span>
+        Alerta enviado via WhatsApp agora mesmo
       </div>
     </div>
   );
@@ -83,23 +87,26 @@ function Nav() {
     <nav className={`${styles.nav}${scrolled ? " " + styles.navScrolled : ""}`}>
       <Link href="/" className={styles.navLogo}>
         <span className={styles.navLogoMark}>
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden>
-            <path d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z" fill="white"/>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
           </svg>
         </span>
         <span className={styles.navLogoText}>MEIGuia</span>
       </Link>
 
       <div className={styles.navLinks}>
-        <a href="#funcionalidades">Funcionalidades</a>
+        <a href="#beneficios">Beneficios</a>
         <a href="#como-funciona">Como funciona</a>
         <a href="#depoimentos">Depoimentos</a>
-        <Link href="/calculadora-mei">Calculadora</Link>
+        <a href="#planos">Planos</a>
       </div>
 
       <div className={styles.navCta}>
         <Link href="/login" className={styles.btnGhost}>Entrar</Link>
-        <Link href="/cadastro" className={styles.btnPrimary}>Começar grátis</Link>
+        <Link href="/cadastro" className={styles.btnPrimary}>
+          Comecar gratis
+          <span className={styles.btnArrow}>→</span>
+        </Link>
       </div>
     </nav>
   );
@@ -117,11 +124,11 @@ function useReveal() {
           io.unobserve(e.target);
         }
       });
-    }, { threshold: 0.12 });
+    }, { threshold: 0.10 });
     els.forEach((el) => {
       (el as HTMLElement).style.opacity = "0";
-      (el as HTMLElement).style.transform = "translateY(28px)";
-      (el as HTMLElement).style.transition = "opacity .55s ease, transform .55s ease";
+      (el as HTMLElement).style.transform = "translateY(32px)";
+      (el as HTMLElement).style.transition = "opacity .6s ease, transform .6s ease";
       io.observe(el);
     });
     return () => io.disconnect();
@@ -129,17 +136,9 @@ function useReveal() {
 }
 
 /* ─── Icons ─── */
-const IcoAlert  = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
-const IcoFolder = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>;
-const IcoClock  = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
-const IcoChart  = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>;
-const IcoShield = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
-const IcoBell   = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
-const IcoFile   = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>;
-const IcoCheck  = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="20 6 9 17 4 12"/></svg>;
-const IcoUser   = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
-const IcoStar   = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
-const IcoRocket = () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l-.55-.55"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>;
+const IcoStar  = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+const IcoCheck = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="20 6 9 17 4 12"/></svg>;
+const IcoX     = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
 
 /* ─── Page ─── */
 export default function HomePage() {
@@ -149,35 +148,37 @@ export default function HomePage() {
     <div className={styles.page}>
       <Nav />
 
-      {/* HERO */}
+      {/* ═══ HERO ═══ */}
       <section className={styles.hero}>
         <div className={styles.heroLeft} data-reveal>
           <div className={styles.heroBadge}>
-            <span>✦</span> Gestão financeira para MEI
+            <span className={styles.heroBadgePulse} />
+            Exclusivo para MEI — 100% gratuito para comecar
           </div>
 
           <h1 className={styles.heroH1}>
-            Seu MEI sob controle.<br />
-            <em>Sem</em> surpresas.
+            Nao deixe seu MEI<br />
+            virar uma <em>dor de cabeca</em>
           </h1>
 
           <p className={styles.heroSub}>
-            Monitore seu limite de faturamento, emita notas fiscais e receba
-            alertas antes de ultrapassar o teto do MEI — tudo em minutos por dia.
+            O MEIGuia monitora seu faturamento e te avisa antes de voce
+            ultrapassar o limite de <strong>R$ 81 mil</strong> — evitando multas
+            e impostos retroativos.
           </p>
 
           <div className={styles.heroActions}>
             <Link href="/cadastro" className={styles.btnPrimaryLg}>
-              Começar grátis
+              Comecar gratis agora
               <span className={styles.btnArrow}>→</span>
             </Link>
-            <Link href="/landing" className={styles.btnOutlineLg}>
+            <a href="#como-funciona" className={styles.btnOutlineLg}>
               Ver como funciona
-            </Link>
+            </a>
           </div>
 
           <p className={styles.heroDisclaimer}>
-            Sem cartão de crédito · Cancele quando quiser
+            Leva menos de 1 minuto · Sem cartao de credito
           </p>
         </div>
 
@@ -186,73 +187,130 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* PROBLEMA */}
-      <section className={styles.sectionAlt} id="problema">
+      {/* ═══ DOR ═══ */}
+      <section className={`${styles.section} ${styles.sectionAlt}`} id="problema">
         <div className={styles.inner}>
-          <p className={styles.eyebrow} data-reveal>O problema</p>
+          <span className={styles.eyebrow} data-reveal>O problema</span>
           <h2 className={styles.sectionH2} data-reveal>
-            Gerir um MEI não deveria ser tão complicado
+            Voce nao sabe quanto<br />ja faturou este ano?
           </h2>
+          <p className={`${styles.sectionSub}`} data-reveal>
+            Mais de 70% dos MEIs nao controlam o faturamento e so descobrem
+            o problema quando ja e tarde demais.
+          </p>
 
-          <div className={styles.problemaGrid}>
+          <div className={styles.dorGrid}>
             {[
-              { icon: <IcoAlert />,  title: "Estouro do limite",        desc: "Ultrapassar R$ 81.000 sem perceber pode tirar sua condição de MEI e gerar dívidas com o fisco." },
-              { icon: <IcoFolder />, title: "Desorganização financeira", desc: "Receitas e despesas misturadas em cadernos e planilhas — sem visão clara do que entra e sai." },
-              { icon: <IcoClock />,  title: "Burocracia e tempo perdido",desc: "Declarações, notas fiscais e obrigações mensais tomam horas que deveriam ser dedicadas ao negócio." },
+              { emoji: "😰", title: "Sem controle do faturamento", desc: "Voce nao sabe quanto ja recebeu este ano e nem quanto ainda pode faturar. Uma unica nota pode te fazer ultrapassar o limite." },
+              { emoji: "😓", title: "Esqueceu de pagar o DAS?", desc: "Multas, juros e restricoes no CNPJ. O DAS vence todo mes e o esquecimento e mais comum do que parece." },
+              { emoji: "😱", title: "Medo de multas da Receita", desc: "Ultrapassar o limite do MEI sem perceber pode gerar cobrancas retroativas e ate perda da categoria." },
             ].map((c, i) => (
-              <div key={i} className={styles.problemaCard} data-reveal>
-                <div className={styles.problemaIconWrap}>{c.icon}</div>
-                <h3 className={styles.problemaTitle}>{c.title}</h3>
-                <p className={styles.problemaDesc}>{c.desc}</p>
+              <div key={i} className={styles.dorCard} data-reveal>
+                <span className={styles.dorEmoji}>{c.emoji}</span>
+                <h3 className={styles.dorTitle}>{c.title}</h3>
+                <p className={styles.dorDesc}>{c.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.dorAlerta} data-reveal>
+            <span className={styles.dorAlertaEmoji}>⚡</span>
+            <p className={styles.dorAlertaText}>
+              <strong>Atencao:</strong> Se voce ultrapassar R$ 81.000 de faturamento no ano,
+              pode ser obrigado a pagar impostos como empresa normal — com cobranca{" "}
+              <strong>retroativa ao mes em que estorou o limite</strong>.
+              A diferenca pode ser de milhares de reais.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ BENEFÍCIOS ═══ */}
+      <section className={styles.section} id="beneficios">
+        <div className={styles.inner}>
+          <span className={styles.eyebrow} data-reveal>A solucao</span>
+          <h2 className={styles.sectionH2} data-reveal>
+            Tudo que voce precisa<br />em um unico lugar
+          </h2>
+          <p className={`${styles.sectionSub}`} data-reveal>
+            Simples, direto e feito para quem nao e contador.
+          </p>
+
+          <div className={styles.benfGrid}>
+            {[
+              { emoji: "📊", title: "Controle simples",     desc: "Veja em tempo real quanto voce ja faturou e quanto ainda pode faturar este ano." },
+              { emoji: "⚠️",  title: "Evite multas",        desc: "Seja avisado antes de ultrapassar o limite e evite consequencias com a Receita Federal." },
+              { emoji: "🔔", title: "Alertas automaticos", desc: "Notificacoes por e-mail e WhatsApp quando se aproximar do limite ou vencer o DAS." },
+              { emoji: "💰", title: "Seguranca financeira", desc: "Previsao de faturamento para planejar seus proximos meses sem sustos." },
+              { emoji: "📅", title: "Organizacao do DAS",   desc: "Lembrete mensal do DAS com calculo automatico do valor com base no seu tipo de atividade." },
+            ].map((c, i) => (
+              <div key={i} className={styles.benfCard} data-reveal>
+                <span className={styles.benfEmoji}>{c.emoji}</span>
+                <h3 className={styles.benfTitle}>{c.title}</h3>
+                <p className={styles.benfDesc}>{c.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* SOLUÇÃO */}
-      <section className={styles.section} id="funcionalidades">
-        <div className={styles.inner}>
-          <p className={styles.eyebrow} data-reveal>A solução</p>
-          <h2 className={styles.sectionH2} data-reveal>
-            Tudo que o MEI precisa em um só lugar
+      {/* ═══ SIMULAÇÃO DE RISCO ═══ */}
+      <div className={styles.riscoBg} data-reveal>
+        <div className={styles.riscoInner}>
+          <span className={`${styles.eyebrow} ${styles.eyebrowLight}`}>Simulacao de risco</span>
+          <h2 className={styles.riscoH2}>
+            O que acontece se voce ultrapassar o limite?
           </h2>
+          <p className={styles.riscoSub}>
+            Veja o impacto real de faturar R$ 90.000 sendo MEI:
+          </p>
 
-          <div className={styles.solucaoGrid}>
-            {[
-              { icon: <IcoChart />,  title: "Controle de limite",    desc: "Gauge visual do seu faturamento em tempo real. Saiba exatamente quanto ainda pode faturar." },
-              { icon: <IcoBell />,   title: "Alertas inteligentes",   desc: "Notificações por e-mail quando você se aproxima do limite ou tem obrigações pendentes." },
-              { icon: <IcoFile />,   title: "Notas fiscais fáceis",   desc: "Emita e gerencie suas NFS-e sem precisar acessar o portal da prefeitura." },
-              { icon: <IcoShield />, title: "Conformidade garantida", desc: "Acompanhe suas obrigações fiscais mensais e anuais sem esquecer nenhum prazo." },
-              { icon: <IcoCheck />,  title: "Relatórios prontos",     desc: "Relatórios mensais e anuais para compartilhar com seu contador em um clique." },
-            ].map((c, i) => (
-              <div key={i} className={styles.solucaoCard} data-reveal>
-                <div className={styles.solucaoIconWrap}>{c.icon}</div>
-                <h3 className={styles.solucaoCardTitle}>{c.title}</h3>
-                <p className={styles.solucaoCardDesc}>{c.desc}</p>
-              </div>
-            ))}
+          <div className={styles.riscoCard}>
+            <div className={styles.riscoCol}>
+              <span className={styles.riscoLabel}>Faturamento no ano</span>
+              <span className={styles.riscoVal}>R$ 90.000</span>
+            </div>
+            <div className={styles.riscoDivider} />
+            <div className={`${styles.riscoCol} ${styles.riscoColRight}`}>
+              <span className={styles.riscoLabel}>Excesso sobre o limite</span>
+              <span className={`${styles.riscoVal} ${styles.riscoValNeg}`}>R$ 9.000</span>
+            </div>
+          </div>
+
+          <div className={styles.riscoFooter}>
+            Sobre esse excesso, voce pode ser cobrado com <strong>aliquotas de 4% a 15,5%</strong> — retroativamente
+            a partir do mes em que ultrapassou. Isso significa uma conta inesperada de{" "}
+            <strong>R$ 360 a R$ 1.395 ou mais</strong>, dependendo da sua atividade.
+          </div>
+
+          <div className={styles.riscoCta}>
+            <Link href="/cadastro" className={styles.btnPrimaryLg}>
+              Quero me proteger gratis
+              <span className={styles.btnArrow}>→</span>
+            </Link>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* COMO FUNCIONA */}
-      <section className={styles.sectionAlt} id="como-funciona">
+      {/* ═══ COMO FUNCIONA ═══ */}
+      <section className={`${styles.section} ${styles.sectionAlt}`} id="como-funciona">
         <div className={styles.inner}>
-          <p className={styles.eyebrow} data-reveal style={{textAlign:"center"}}>Como funciona</p>
-          <h2 className={styles.sectionH2Center} data-reveal>
-            Comece em menos de 5 minutos
+          <span className={styles.eyebrow} data-reveal style={{textAlign:"center", display:"block"}}>Como funciona</span>
+          <h2 className={`${styles.sectionH2} ${styles.sectionH2Center}`} data-reveal>
+            Comece em menos de 1 minuto
           </h2>
+          <p className={`${styles.sectionSub} ${styles.sectionSubCenter}`} data-reveal>
+            Sem burocracia, sem termos tecnicos. So voce, seu MEI e a tranquilidade de estar protegido.
+          </p>
 
           <div className={styles.passosWrap}>
             {[
-              { icon: <IcoUser />,  title: "Crie sua conta",   desc: "Cadastro rápido com e-mail ou Google. Nenhuma informação de cartão necessária." },
-              { icon: <IcoChart />, title: "Conecte seu CNPJ", desc: "Informe seu CNPJ e o MEIGuia importa seus dados fiscais automaticamente." },
-              { icon: <IcoBell />,  title: "Receba alertas",   desc: "Configure seus limites e notificações. Pronto — seu MEI está sendo monitorado." },
+              { num: "1", title: "Crie sua conta gratis",   desc: "Cadastro rapido com e-mail ou Google. Nenhuma informacao de cartao necessaria." },
+              { num: "2", title: "Informe seu CNPJ",         desc: "O MEIGuia detecta automaticamente sua atividade, municipio e limite de faturamento." },
+              { num: "3", title: "Receba alertas",           desc: "A partir daqui, voce e notificado por e-mail ou WhatsApp. Pronto — seu MEI esta protegido." },
             ].map((c, i) => (
               <div key={i} className={styles.passoItem} data-reveal>
-                <div className={styles.passoNumCircle}>{i + 1}</div>
-                <div className={styles.passoIconWrap}>{c.icon}</div>
+                <div className={styles.passoNum}>{c.num}</div>
                 <h3 className={styles.passoTitle}>{c.title}</h3>
                 <p className={styles.passoDesc}>{c.desc}</p>
               </div>
@@ -261,19 +319,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* DEPOIMENTOS */}
+      {/* ═══ DEPOIMENTOS ═══ */}
       <section className={styles.section} id="depoimentos">
         <div className={styles.inner}>
-          <p className={styles.eyebrow} data-reveal style={{textAlign:"center"}}>Depoimentos</p>
-          <h2 className={styles.sectionH2Center} data-reveal>
+          <span className={styles.eyebrow} data-reveal style={{textAlign:"center", display:"block"}}>Depoimentos</span>
+          <h2 className={`${styles.sectionH2} ${styles.sectionH2Center}`} data-reveal>
             MEIs que pararam de se preocupar
           </h2>
 
           <div className={styles.depoGrid}>
             {[
-              { name: "Ana Carvalho",  role: "Designer freelancer", text: "Finalmente sei exatamente quanto posso faturar sem medo de estouro. O gauge é simples e direto ao ponto.", initials: "AC" },
-              { name: "Carlos Mendes", role: "Consultor de TI",     text: "Recebi um alerta quando estava chegando a 80% do limite. Me poupou de uma dor de cabeça enorme com a Receita.", initials: "CM" },
-              { name: "Patrícia Lima", role: "Fotógrafa",            text: "Meu contador adora os relatórios que envio. Economizo tempo e dinheiro todo mês.", initials: "PL" },
+              { name: "Ana Carvalho",  role: "Designer freelancer", initials: "AC",
+                text: "Hoje eu sei exatamente quanto posso faturar. Recebi um alerta no WhatsApp quando estava chegando a 80% do limite. Me poupou de uma dor de cabeca enorme." },
+              { name: "Carlos Mendes", role: "Consultor de TI",     initials: "CM",
+                text: "Simples e direto ao ponto. Antes eu usava planilha e sempre me perdia. Agora o MEIGuia faz tudo e eu so olho o painel uma vez por semana." },
+              { name: "Patricia Lima", role: "Fotografa",            initials: "PL",
+                text: "Nunca mais esqueci o DAS. O lembrete chega automatico todo mes com o valor certinho. Economizo tempo e evito multas." },
             ].map((d, i) => (
               <div key={i} className={styles.depoCard} data-reveal>
                 <div className={styles.depoStars}>
@@ -293,57 +354,205 @@ export default function HomePage() {
 
           <div className={styles.statsRow} data-reveal>
             {[
-              { icon: <IcoUser />,   num: "500+",    label: "MEIs protegidos" },
-              { icon: <IcoBell />,   num: "2.000+",  label: "Alertas enviados" },
-              { icon: <IcoShield />, num: "R$ 20M+", label: "Faturamento monitorado" },
+              { num: "500+",    label: "MEIs protegidos" },
+              { num: "2.000+",  label: "Alertas enviados" },
+              { num: "R$ 20M+", label: "Faturamento monitorado" },
             ].map((s, i) => (
               <div key={i} className={styles.statCell}>
-                <div className={styles.statCellIconWrap}>{s.icon}</div>
-                <p className={styles.statCellNum}>{s.num}</p>
-                <p className={styles.statCellLabel}>{s.label}</p>
+                <p className={styles.statNum}>{s.num}</p>
+                <p className={styles.statLabel}>{s.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA BANNER */}
-      <section className={styles.section}>
+      {/* ═══ PLANOS ═══ */}
+      <section className={`${styles.section} ${styles.sectionAlt}`} id="planos">
         <div className={styles.inner}>
-          <div className={styles.ctaBanner} data-reveal>
-            <div className={styles.ctaBannerLeft}>
-              <div className={styles.ctaBannerIconWrap}><IcoRocket /></div>
+          <span className={styles.eyebrow} data-reveal style={{textAlign:"center", display:"block"}}>Planos</span>
+          <h2 className={`${styles.sectionH2} ${styles.sectionH2Center}`} data-reveal>
+            Comece gratis, evolua quando precisar
+          </h2>
+          <p className={`${styles.sectionSub} ${styles.sectionSubCenter}`} data-reveal>
+            Sem cartao de credito para comecar. Cancele quando quiser.
+          </p>
+
+          <div className={styles.planosGrid}>
+            {/* Gratuito */}
+            <div className={styles.planoCard} data-reveal>
               <div>
-                <h2 className={styles.ctaBannerTitle}>Pronto para ter seu MEI sob controle?</h2>
-                <p className={styles.ctaBannerSub}>
-                  Junte-se a mais de 500 MEIs que não se preocupam mais com limite.
-                </p>
+                <p className={styles.planoNome}>Gratuito</p>
+                <div className={styles.planoPreco}>
+                  <span className={styles.planoMoeda}>R$</span>
+                  <span className={styles.planoValor}>0</span>
+                </div>
+                <p className={styles.planoDescricao}>Para comecar a controlar sem gastar nada.</p>
               </div>
+              <div className={styles.planoSep} />
+              <div className={styles.planoFeatures}>
+                {[
+                  [true,  "Ate 5 notas por mes"],
+                  [true,  "Gauge de limite de faturamento"],
+                  [true,  "Alertas por e-mail"],
+                  [false, "Alertas por WhatsApp"],
+                  [false, "Previsao de faturamento"],
+                  [false, "Guias DAS automaticas"],
+                  [false, "Emissao de nota fiscal"],
+                ].map(([ok, txt], i) => (
+                  <div key={i} className={styles.planoFeatureItem}>
+                    <span className={ok ? styles.planoCheck : styles.planoX}>
+                      {ok ? <IcoCheck /> : <IcoX />}
+                    </span>
+                    {txt as string}
+                  </div>
+                ))}
+              </div>
+              <Link href="/cadastro" className={styles.planoBtnOutline}>
+                Comecar gratis
+              </Link>
             </div>
-            <div className={styles.ctaBannerRight}>
-              <Link href="/cadastro" className={styles.btnPrimaryLg}>
-                Criar conta grátis
+
+            {/* Pro — destaque */}
+            <div className={`${styles.planoCard} ${styles.planoCardDestaque}`} data-reveal>
+              <span className={styles.planoDestaqueBadge}>Mais popular</span>
+              <div>
+                <p className={styles.planoNome}>Pro</p>
+                <div className={styles.planoPreco}>
+                  <span className={styles.planoMoeda}>R$</span>
+                  <span className={styles.planoValor}>24</span>
+                  <span className={styles.planoPeriodo}>,90/mes</span>
+                </div>
+                <p className={styles.planoDescricao}>Para quem quer controle completo e tranquilidade.</p>
+              </div>
+              <div className={styles.planoSep} />
+              <div className={styles.planoFeatures}>
+                {[
+                  [true, "Notas ilimitadas"],
+                  [true, "Gauge de limite de faturamento"],
+                  [true, "Alertas por e-mail"],
+                  [true, "Alertas por WhatsApp"],
+                  [true, "Previsao de faturamento"],
+                  [true, "Guias DAS automaticas"],
+                  [false,"Emissao de nota fiscal"],
+                ].map(([ok, txt], i) => (
+                  <div key={i} className={styles.planoFeatureItem}>
+                    <span className={ok ? styles.planoCheck : styles.planoX}>
+                      {ok ? <IcoCheck /> : <IcoX />}
+                    </span>
+                    {txt as string}
+                  </div>
+                ))}
+              </div>
+              <Link href="/cadastro?plano=pro" className={styles.planoBtnPrimary}>
+                Testar gratis por 7 dias
                 <span className={styles.btnArrow}>→</span>
               </Link>
-              <p className={styles.ctaBannerNote}>Sem cartão · Plano gratuito disponível</p>
+            </div>
+
+            {/* Premium */}
+            <div className={styles.planoCard} data-reveal>
+              <div>
+                <p className={styles.planoNome}>Premium</p>
+                <div className={styles.planoPreco}>
+                  <span className={styles.planoMoeda}>R$</span>
+                  <span className={styles.planoValor}>49</span>
+                  <span className={styles.planoPeriodo}>,90/mes</span>
+                </div>
+                <p className={styles.planoDescricao}>Para MEIs que precisam de tudo, inclusive NF.</p>
+              </div>
+              <div className={styles.planoSep} />
+              <div className={styles.planoFeatures}>
+                {[
+                  [true, "Tudo do Pro"],
+                  [true, "Emissao de nota fiscal (NFS-e)"],
+                  [true, "Suporte prioritario"],
+                  [true, "Relatorios para contador"],
+                  [true, "Historico completo"],
+                ].map(([ok, txt], i) => (
+                  <div key={i} className={styles.planoFeatureItem}>
+                    <span className={ok ? styles.planoCheck : styles.planoX}>
+                      {ok ? <IcoCheck /> : <IcoX />}
+                    </span>
+                    {txt as string}
+                  </div>
+                ))}
+              </div>
+              <Link href="/cadastro?plano=premium" className={styles.planoBtnOutline}>
+                Comecar com Premium
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
+      {/* ═══ DIFERENCIAIS ═══ */}
+      <section className={styles.section}>
+        <div className={styles.inner}>
+          <span className={styles.eyebrow} data-reveal>Por que o MEIGuia?</span>
+          <h2 className={styles.sectionH2} data-reveal>
+            Feito exclusivamente para MEI
+          </h2>
+          <p className={`${styles.sectionSub}`} data-reveal>
+            Sem planilhas complicadas, sem termos juridicos. So o que voce precisa saber.
+          </p>
+
+          <div className={styles.diferenciaisGrid}>
+            {[
+              { emoji: "💬", title: "Alertas via WhatsApp",      desc: "Receba notificacoes diretamente no seu WhatsApp quando se aproximar do limite ou vencer o DAS. Simples como uma mensagem de amigo." },
+              { emoji: "🎯", title: "Foco exclusivo em MEI",      desc: "Desenvolvido especificamente para Microempreendedores Individuais. Nao e um sistema generico adaptado — foi feito para voce." },
+              { emoji: "⚡", title: "Simplicidade extrema",       desc: "Interface limpa, sem burocracia. Qualquer pessoa consegue usar sem treinamento ou conhecimento tecnico." },
+              { emoji: "🔒", title: "Seus dados protegidos",      desc: "Criptografia de ponta a ponta. Seus dados financeiros ficam seguros e so voce tem acesso." },
+              { emoji: "🤖", title: "Tudo automatico",            desc: "Cadastre seu CNPJ uma vez e pronto. O sistema detecta sua atividade, calcula o DAS e monitora seu limite sozinho." },
+              { emoji: "📱", title: "Funciona no celular",        desc: "Use no computador, celular ou tablet. Instalavel como app no seu smartphone — sem precisar de loja de aplicativos." },
+            ].map((d, i) => (
+              <div key={i} className={styles.diferencial} data-reveal>
+                <span className={styles.diferencialEmoji}>{d.emoji}</span>
+                <div>
+                  <h3 className={styles.diferencialTitle}>{d.title}</h3>
+                  <p className={styles.diferencialDesc}>{d.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ CTA FINAL ═══ */}
+      <section className={styles.ctaFinal} data-reveal>
+        <span className={styles.ctaFinalBadge}>
+          🚀 Mais de 500 MEIs ja estao protegidos
+        </span>
+        <h2 className={styles.ctaFinalH2}>
+          Nao espere dar <em>problema</em><br />
+          para se organizar
+        </h2>
+        <p className={styles.ctaFinalSub}>
+          Crie sua conta gratis agora e tenha o controle do seu MEI
+          na palma da mao. Sem cartao de credito.
+        </p>
+        <Link href="/cadastro" className={styles.btnPrimaryLg}>
+          Criar conta gratis agora
+          <span className={styles.btnArrow}>→</span>
+        </Link>
+        <p className={styles.ctaFinalNote}>
+          Leva menos de 1 minuto · Plano gratuito disponivel · Cancele quando quiser
+        </p>
+      </section>
+
+      {/* ═══ FOOTER ═══ */}
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
           <Link href="/" className={styles.footerLogo}>
             <span className={styles.footerLogoMark}>
-              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden>
-                <path d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z" fill="white"/>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
               </svg>
             </span>
             <span className={styles.footerLogoText}>MEIGuia</span>
           </Link>
 
-          <nav className={styles.footerLinks} aria-label="Footer">
+          <nav className={styles.footerLinks}>
             <Link href="/calculadora-mei">Calculadora MEI</Link>
             <Link href="/login">Entrar</Link>
             <Link href="/cadastro">Cadastro</Link>
@@ -356,10 +565,10 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* MOBILE STICKY CTA */}
+      {/* Mobile sticky CTA */}
       <div className={styles.mobileCta}>
         <Link href="/cadastro" className={styles.btnPrimaryLg} style={{width:"100%", justifyContent:"center"}}>
-          Começar grátis
+          Comecar gratis agora →
         </Link>
       </div>
     </div>
